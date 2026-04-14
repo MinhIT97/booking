@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: rental-app
+    container_name: rental_app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - rental_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: rental_nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - rental_network
+
+  mysql:
+    image: mysql:8.0
+    container_name: rental_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: rental_db
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: root
+      MYSQL_USER: rental_user
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - rental_network
+
+  redis:
+    image: redis:alpine
+    container_name: rental_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - rental_network
+
+  queue:
+    image: rental-app
+    container_name: rental_queue
+    restart: unless-stopped
+    command: php artisan queue:work redis --sleep=3 --tries=3
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - redis
+      - mysql
+    networks:
+      - rental_network
+
+  reverb:
+    image: rental-app
+    container_name: rental_reverb
+    restart: unless-stopped
+    command: php artisan reverb:start --host="0.0.0.0" --port=8080
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - redis
+    networks:
+      - rental_network
+
+networks:
+  rental_network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  redis-data:

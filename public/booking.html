@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book — Oceanfront Bali Villa · StayNest</title>
+  <meta name="description" content="Book your stay at Oceanfront Bali Villa. Choose your dates and see instant price breakdown." />
+  <script src="/js/api.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'] }, colors: { brand: { DEFAULT:'#ff385c', dark:'#d90b2e' } } } } }</script>
+  <style>
+    .btn-primary { background: linear-gradient(135deg,#ff385c,#d90b2e); transition: all .3s ease; }
+    .btn-primary:hover { box-shadow: 0 10px 28px rgba(255,56,92,.4); transform: translateY(-2px); }
+
+    /* Calendar day base */
+    .cal-day { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+               border-radius: 50%; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s ease; position: relative; }
+    .cal-day:hover:not(.unavailable):not(.empty):not(.past) { background: #ffe4e8; color: #ff385c; }
+    .cal-day.unavailable { background: #fee2e2; color: #f87171; cursor: not-allowed; text-decoration: line-through; font-size: 11px; }
+    .cal-day.unavailable::after { content:''; position:absolute; width:4px; height:4px; background:#ef4444; border-radius:50%; bottom:3px; }
+    .cal-day.past { color: #d1d5db; cursor: not-allowed; }
+    .cal-day.today { font-weight: 700; color: #ff385c; border: 1.5px solid #ff385c; }
+    .cal-day.selected-start, .cal-day.selected-end { background: #ff385c; color: #fff; font-weight: 700; }
+    .cal-day.in-range { background: #ffe4e8; color: #ff385c; border-radius: 0; }
+    .cal-day.selected-start { border-radius: 50% 0 0 50%; }
+    .cal-day.selected-end { border-radius: 0 50% 50% 0; }
+    .cal-day.selected-start.selected-end { border-radius: 50%; }
+    .cal-day.empty { cursor: default; }
+
+    /* Range row styling */
+    .cal-row { display: grid; grid-template-columns: repeat(7,40px); gap: 2px; }
+
+    /* Step indicator */
+    .step-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; transition: all .3s ease; }
+    .step-dot.done { background: #ff385c; color: #fff; }
+    .step-dot.active { background: #ff385c; color: #fff; box-shadow: 0 0 0 6px rgba(255,56,92,.15); }
+    .step-dot.pending { background: #e5e7eb; color: #9ca3af; }
+    .step-line { flex: 1; height: 2px; background: #e5e7eb; transition: background .3s ease; }
+    .step-line.done { background: #ff385c; }
+
+    /* Price row */
+    .price-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 14px; }
+    .price-row + .price-row { border-top: 1px solid #f3f4f6; }
+
+    /* Toast */
+    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+             transition: transform .35s cubic-bezier(.4,0,.2,1); z-index: 100; }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body class="font-sans antialiased bg-gray-50 text-gray-900 min-h-screen">
+
+<!-- NAV -->
+<nav class="bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm sticky top-0 z-40">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2">
+      <svg class="w-7 h-7 text-brand" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span class="text-lg font-bold">Stay<span class="text-brand">Nest</span></span>
+    </a>
+    <a href="/property-detail.html" class="text-sm font-medium text-gray-600 hover:text-brand transition-colors flex items-center gap-1">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      Back to property
+    </a>
+  </div>
+</nav>
+
+<!-- HERO STRIP -->
+<div class="bg-white border-b border-gray-100">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex items-center gap-4">
+    <img src="/property_beach.png" class="w-20 h-14 object-cover rounded-xl flex-shrink-0" alt="Villa" />
+    <div class="flex-1 min-w-0">
+      <h1 class="font-extrabold text-gray-900 text-lg truncate">Oceanfront Bali Villa</h1>
+      <p class="text-sm text-gray-400 flex items-center gap-1 mt-0.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+        Seminyak, Bali · <span class="text-amber-500 font-semibold">★ 5.0</span> · 148 reviews
+      </p>
+    </div>
+    <div class="text-right flex-shrink-0">
+      <span class="text-2xl font-extrabold text-gray-900">$380</span>
+      <span class="text-gray-400 text-sm"> /night</span>
+    </div>
+  </div>
+</div>
+
+<!-- STEP INDICATOR -->
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+  <div class="flex items-center max-w-sm mx-auto mb-10">
+    <div class="step-dot active" id="s1">1</div>
+    <div class="step-line" id="sl1"></div>
+    <div class="step-dot pending" id="s2">2</div>
+    <div class="step-line" id="sl2"></div>
+    <div class="step-dot pending" id="s3">3</div>
+  </div>
+  <div class="flex justify-between max-w-sm mx-auto -mt-6 mb-8 text-xs text-gray-400">
+    <span class="text-brand font-semibold" id="sl1-label">Choose Dates</span>
+    <span id="sl2-label">Guests</span>
+    <span id="sl3-label">Confirm</span>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- LEFT: STEPS -->
+    <div class="lg:col-span-2 space-y-6">
+
+      <!-- STEP 1: DATE PICKER -->
+      <div id="step-1" class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-bold text-gray-900">Choose your dates</h2>
+          <span class="text-xs font-medium bg-rose-50 text-brand px-3 py-1 rounded-full">Step 1 of 3</span>
+        </div>
+
+        <!-- Unavailable legend -->
+        <div class="flex items-center gap-6 mb-5 text-xs text-gray-500">
+          <span class="flex items-center gap-1.5"><span class="w-4 h-4 bg-rose-100 rounded-full inline-block"></span> Unavailable</span>
+          <span class="flex items-center gap-1.5"><span class="w-4 h-4 bg-brand rounded-full inline-block"></span> Selected</span>
+          <span class="flex items-center gap-1.5"><span class="w-4 h-4 bg-rose-100 rounded-full border border-brand inline-block"></span> Range</span>
+        </div>
+
+        <!-- Calendar grid (2 months) -->
+        <div id="calendar-container" class="grid grid-cols-1 sm:grid-cols-2 gap-6 overflow-x-auto"></div>
+
+        <!-- Selected range display -->
+        <div class="mt-5 p-4 bg-gray-50 rounded-2xl flex flex-col sm:flex-row gap-4">
+          <div class="flex-1 text-center">
+            <p class="text-xs text-gray-400 mb-1 uppercase tracking-wide font-semibold">Check-in</p>
+            <p id="ci-display" class="text-base font-bold text-gray-900">—</p>
+          </div>
+          <div class="hidden sm:flex items-center">
+            <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+          </div>
+          <div class="flex-1 text-center">
+            <p class="text-xs text-gray-400 mb-1 uppercase tracking-wide font-semibold">Check-out</p>
+            <p id="co-display" class="text-base font-bold text-gray-900">—</p>
+          </div>
+          <div class="flex-1 text-center border-l border-gray-200 pl-4">
+            <p class="text-xs text-gray-400 mb-1 uppercase tracking-wide font-semibold">Duration</p>
+            <p id="nights-display" class="text-base font-bold text-gray-900">—</p>
+          </div>
+        </div>
+
+        <div class="flex gap-3 mt-4">
+          <button onclick="clearDates()" class="flex-1 py-3 rounded-2xl border-2 border-gray-200 text-sm font-semibold text-gray-700 hover:border-brand hover:text-brand transition-colors">Clear dates</button>
+          <button id="date-next" onclick="goStep(2)" class="flex-1 btn-primary text-white py-3 rounded-2xl text-sm font-bold disabled:opacity-40" disabled>Next: Guests →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: GUESTS -->
+      <div id="step-2" class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 opacity-40 pointer-events-none">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-bold text-gray-900">Who's coming?</h2>
+          <span class="text-xs font-medium bg-gray-100 text-gray-400 px-3 py-1 rounded-full">Step 2 of 3</span>
+        </div>
+        <div class="space-y-4">
+          <div class="flex items-center justify-between py-4 border-b border-gray-100">
+            <div><p class="font-semibold text-gray-900">Adults</p><p class="text-xs text-gray-400">Age 13+</p></div>
+            <div class="flex items-center gap-4">
+              <button onclick="adj('adults',-1)" class="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-brand hover:text-brand transition-colors text-xl font-light">−</button>
+              <span id="adults-num" class="font-semibold text-gray-900 w-4 text-center">2</span>
+              <button onclick="adj('adults',1)" class="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-brand hover:text-brand transition-colors text-xl font-light">+</button>
+            </div>
+          </div>
+          <div class="flex items-center justify-between py-4 border-b border-gray-100">
+            <div><p class="font-semibold text-gray-900">Children</p><p class="text-xs text-gray-400">Ages 2–12</p></div>
+            <div class="flex items-center gap-4">
+              <button onclick="adj('children',-1)" class="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-brand hover:text-brand transition-colors text-xl font-light">−</button>
+              <span id="children-num" class="font-semibold text-gray-900 w-4 text-center">0</span>
+              <button onclick="adj('children',1)" class="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-brand hover:text-brand transition-colors text-xl font-light">+</button>
+            </div>
+          </div>
+          <div class="flex items-center justify-between py-4">
+            <div><p class="font-semibold text-gray-900">Infants</p><p class="text-xs text-gray-400">Under 2</p></div>
+            <div class="flex items-center gap-4">
+              <button onclick="adj('infants',-1)" class="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-brand hover:text-brand transition-colors text-xl font-light">−</button>
+              <span id="infants-num" class="font-semibold text-gray-900 w-4 text-center">0</span>
+              <button onclick="adj('infants',1)" class="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-brand hover:text-brand transition-colors text-xl font-light">+</button>
+            </div>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400 mt-2">This property has a maximum of 8 guests.</p>
+        <div class="flex gap-3 mt-5">
+          <button onclick="goStep(1)" class="flex-1 py-3 rounded-2xl border-2 border-gray-200 text-sm font-semibold text-gray-700 hover:border-brand hover:text-brand transition-colors">← Back</button>
+          <button onclick="goStep(3)" class="flex-1 btn-primary text-white py-3 rounded-2xl text-sm font-bold">Review booking →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: REVIEW -->
+      <div id="step-3" class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 opacity-40 pointer-events-none">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-bold text-gray-900">Review your booking</h2>
+          <span class="text-xs font-medium bg-gray-100 text-gray-400 px-3 py-1 rounded-full">Step 3 of 3</span>
+        </div>
+        <div class="bg-gray-50 rounded-2xl p-4 mb-5 flex gap-4">
+          <img src="/property_beach.png" class="w-24 h-18 object-cover rounded-xl flex-shrink-0" style="height:72px" />
+          <div>
+            <p class="font-bold text-gray-900">Oceanfront Bali Villa</p>
+            <p class="text-xs text-gray-400 mt-0.5">📍 Seminyak, Bali</p>
+            <div class="flex items-center gap-1 text-xs text-amber-500 mt-1">★★★★★ <span class="text-gray-400">5.0 · Superhost</span></div>
+          </div>
+        </div>
+        <div class="border border-gray-100 rounded-2xl overflow-hidden divide-y divide-gray-100 mb-5">
+          <div class="grid grid-cols-2 divide-x divide-gray-100">
+            <div class="p-4"><p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Check-in</p><p id="r-checkin" class="font-bold text-gray-900 text-sm">—</p></div>
+            <div class="p-4"><p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Check-out</p><p id="r-checkout" class="font-bold text-gray-900 text-sm">—</p></div>
+          </div>
+          <div class="p-4"><p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Guests</p><p id="r-guests" class="font-bold text-gray-900 text-sm">—</p></div>
+        </div>
+        <div class="mb-5">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Message for host <span class="font-normal text-gray-400">(optional)</span></label>
+          <textarea class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand resize-none" rows="3" placeholder="Tell Made why you're travelling…"></textarea>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="goStep(2)" class="flex-1 py-3 rounded-2xl border-2 border-gray-200 text-sm font-semibold text-gray-700 hover:border-brand hover:text-brand transition-colors">← Back</button>
+          <button onclick="submitBooking()" class="flex-1 btn-primary text-white py-3 rounded-2xl text-sm font-bold">Confirm &amp; Request →</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: PRICE SUMMARY (STICKY) -->
+    <div class="lg:col-span-1">
+      <div class="sticky top-24 space-y-4">
+
+        <!-- Price card -->
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+          <h3 class="font-bold text-gray-900 mb-4">Price summary</h3>
+          <div id="price-empty" class="text-center py-6">
+            <div class="text-4xl mb-2">📅</div>
+            <p class="text-sm text-gray-400">Select dates to see<br/>your price breakdown</p>
+          </div>
+          <div id="price-breakdown" class="hidden">
+            <div class="price-row"><span class="text-gray-600">$380 × <span id="pr-nights">0</span> nights</span><span class="font-medium" id="pr-sub">$0</span></div>
+            <div class="price-row"><span class="text-gray-600">Cleaning fee</span><span class="font-medium">$60</span></div>
+            <div class="price-row"><span class="text-gray-600">Service fee (10%)</span><span class="font-medium" id="pr-fee">$0</span></div>
+            <div class="price-row font-bold text-gray-900 text-base"><span>Total</span><span id="pr-total" class="text-brand">$0</span></div>
+          </div>
+        </div>
+
+        <!-- Cancellation policy -->
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-5">
+          <h3 class="font-semibold text-gray-900 mb-3 text-sm">Cancellation policy</h3>
+          <div class="space-y-2 text-xs text-gray-500">
+            <div class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span> Free cancellation until 48h before check-in</div>
+            <div class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">!</span> 50% refund up to 7 days before check-in</div>
+            <div class="flex items-start gap-2"><span class="text-red-400 mt-0.5">✕</span> No refund within 48 hours of check-in</div>
+          </div>
+        </div>
+
+        <!-- Security -->
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            <span class="font-semibold text-gray-900 text-sm">Secure booking</span>
+          </div>
+          <p class="text-xs text-gray-400 leading-relaxed">Your payment is processed via 256-bit SSL encryption. You won't be charged until the host confirms.</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="bg-gray-900 text-white text-sm font-semibold px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-2">
+  <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+  <span id="toast-msg">Booking request sent!</span>
+</div>
+
+<script>
+// ================================================================
+// CONFIG
+const RATE = 380;
+const CLEANING = 60;
+
+// Unavailable date ranges (YYYY-MM-DD)
+const UNAVAILABLE = [
+  '2026-04-18','2026-04-19','2026-04-20','2026-04-21',
+  '2026-04-28','2026-04-29','2026-04-30',
+  '2026-05-05','2026-05-06','2026-05-07','2026-05-08','2026-05-09',
+  '2026-05-15','2026-05-16','2026-05-17',
+  '2026-05-22','2026-05-23','2026-05-24','2026-05-25','2026-05-26',
+];
+const UNAVAIL_SET = new Set(UNAVAILABLE);
+
+// State
+let selectingStart = true;
+let startDate = null;
+let endDate = null;
+const guests = { adults: 2, children: 0, infants: 0 };
+let currentStep = 1;
+
+// ================================================================
+// CALENDAR
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+function fmtDate(d) {
+  return d ? `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}` : '—';
+}
+function fmtKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function parseKey(k) { const [y,m,d] = k.split('-').map(Number); return new Date(y,m-1,d); }
+
+function buildCalendar() {
+  const now = new Date();
+  const container = document.getElementById('calendar-container');
+  container.innerHTML = '';
+  for (let mi = 0; mi < 2; mi++) {
+    const y = now.getFullYear(), mo = now.getMonth() + mi;
+    const yr = y + Math.floor(mo / 12), m = mo % 12;
+    const first = new Date(yr, m, 1);
+    const last  = new Date(yr, m+1, 0);
+    let html = `<div>
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold text-gray-900">${MONTHS[m]} ${yr}</h3>
+      </div>
+      <div class="grid grid-cols-7 mb-1">${DAYS.map(d=>`<div class="text-xs font-semibold text-gray-400 text-center py-1">${d}</div>`).join('')}</div>
+      <div class="space-y-1">`;
+
+    let row = '<div class="cal-row">';
+    const startOffset = first.getDay();
+    for (let e = 0; e < startOffset; e++) row += `<div class="cal-day empty"></div>`;
+
+    for (let d = 1; d <= last.getDate(); d++) {
+      const date = new Date(yr, m, d);
+      const key  = fmtKey(date);
+      const today = new Date(); today.setHours(0,0,0,0);
+      const isPast = date < today;
+      const isUnavail = UNAVAIL_SET.has(key);
+      const isSel  = (startDate && fmtKey(startDate)===key) || (endDate && fmtKey(endDate)===key);
+      const isToday = fmtKey(date) === fmtKey(today);
+      const isRange = startDate && endDate && date > startDate && date < endDate;
+      const isStart = startDate && fmtKey(startDate)===key;
+      const isEnd   = endDate && fmtKey(endDate)===key;
+
+      let cls = 'cal-day';
+      if (isPast) cls += ' past';
+      else if (isUnavail) cls += ' unavailable';
+      else {
+        if (isStart && isEnd) cls += ' selected-start selected-end';
+        else if (isStart) cls += ' selected-start';
+        else if (isEnd) cls += ' selected-end';
+        else if (isRange) cls += ' in-range';
+        else if (isToday) cls += ' today';
+      }
+
+      const click = (isPast||isUnavail) ? '' : `onclick="selectDay('${key}')"`;
+      const title = isUnavail ? 'Unavailable' : '';
+      row += `<div class="${cls}" ${click} title="${title}">${d}</div>`;
+
+      if ((startOffset + d) % 7 === 0 && d < last.getDate()) {
+        row += '</div>'; html += row; row = '<div class="cal-row">';
+      }
+    }
+    const remaining = 7 - ((startOffset + last.getDate()) % 7);
+    if (remaining < 7) for (let e = 0; e < remaining; e++) row += `<div class="cal-day empty"></div>`;
+    row += '</div>';
+    html += row + '</div></div>';
+    container.innerHTML += html;
+  }
+}
+
+function selectDay(key) {
+  const date = parseKey(key);
+  if (selectingStart || (startDate && date <= startDate)) {
+    startDate = date; endDate = null; selectingStart = false;
+  } else {
+    // Check no unavailable dates in range
+    let d = new Date(startDate); d.setDate(d.getDate()+1);
+    let blocked = false;
+    while (d < date) {
+      if (UNAVAIL_SET.has(fmtKey(d))) { blocked = true; break; }
+      d.setDate(d.getDate()+1);
+    }
+    if (blocked) {
+      showToast('⚠️ Your range includes unavailable dates. Please choose different dates.', 3000);
+      startDate = date; endDate = null;
+    } else {
+      endDate = date; selectingStart = true;
+    }
+  }
+  buildCalendar();
+  updateDisplays();
+}
+
+function updateDisplays() {
+  document.getElementById('ci-display').textContent = fmtDate(startDate);
+  document.getElementById('co-display').textContent = fmtDate(endDate);
+  const nights = (startDate && endDate) ? Math.round((endDate-startDate)/86400000) : 0;
+  document.getElementById('nights-display').textContent = nights ? `${nights} night${nights>1?'s':''}` : '—';
+  document.getElementById('date-next').disabled = !startDate || !endDate;
+  updatePrice(nights);
+}
+
+function updatePrice(nights) {
+  if (!nights) {
+    document.getElementById('price-empty').classList.remove('hidden');
+    document.getElementById('price-breakdown').classList.add('hidden');
+    return;
+  }
+  const sub = RATE * nights;
+  const fee = Math.round(sub * 0.1);
+  document.getElementById('price-empty').classList.add('hidden');
+  document.getElementById('price-breakdown').classList.remove('hidden');
+  document.getElementById('pr-nights').textContent = nights;
+  document.getElementById('pr-sub').textContent = '$'+sub.toLocaleString();
+  document.getElementById('pr-fee').textContent = '$'+fee;
+  document.getElementById('pr-total').textContent = '$'+(sub+CLEANING+fee).toLocaleString();
+}
+
+function clearDates() {
+  startDate = null; endDate = null; selectingStart = true;
+  buildCalendar(); updateDisplays();
+}
+
+// ================================================================
+// STEPS
+function goStep(n) {
+  if (n === 2 && (!startDate || !endDate)) {
+    showToast('Please select check-in and check-out dates first.'); return;
+  }
+  currentStep = n;
+  [1,2,3].forEach(i => {
+    const el = document.getElementById(`step-${i}`);
+    el.classList.toggle('opacity-40', i !== n);
+    el.classList.toggle('pointer-events-none', i !== n);
+    const dot = document.getElementById(`s${i}`);
+    dot.classList.remove('done','active','pending');
+    dot.classList.add(i < n ? 'done' : i === n ? 'active' : 'pending');
+    const lbl = document.getElementById(`sl${i}-label`);
+    lbl.className = i <= n ? 'text-brand font-semibold' : 'text-gray-400';
+  });
+  [1,2].forEach(i => {
+    const line = document.getElementById(`sl${i}`);
+    line.className = 'step-line' + (i < n ? ' done' : '');
+  });
+
+  if (n === 3) {
+    const nights = Math.round((endDate-startDate)/86400000);
+    const total = RATE*nights + CLEANING + Math.round(RATE*nights*0.1);
+    document.getElementById('r-checkin').textContent = fmtDate(startDate);
+    document.getElementById('r-checkout').textContent = fmtDate(endDate);
+    document.getElementById('r-guests').textContent =
+      `${guests.adults} adult${guests.adults>1?'s':''}` +
+      (guests.children ? `, ${guests.children} child${guests.children>1?'ren':''}` : '') +
+      (guests.infants ? `, ${guests.infants} infant${guests.infants>1?'s':''}` : '');
+    const s3 = document.getElementById('step-3');
+    s3.querySelector('.text-sm.font-semibold.text-gray-700').textContent = '← Back';
+    s3.querySelector('.btn-primary').textContent = `Confirm & Request: $${total.toLocaleString()} →`;
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ================================================================
+// GUESTS
+function adj(type, delta) {
+  const min = type==='adults' ? 1 : 0;
+  const total = guests.adults + guests.children;
+  if (delta > 0 && total >= 8 && type !== 'infants') return;
+  guests[type] = Math.max(min, guests[type] + delta);
+  document.getElementById(`${type}-num`).textContent = guests[type];
+}
+
+// ================================================================
+// SUBMIT
+function submitBooking() {
+  showToast('🎉 Booking request sent! Made will respond within 24 hours.', 4000);
+  setTimeout(() => { window.location.href = '/'; }, 4500);
+}
+
+// ================================================================
+// TOAST
+function showToast(msg, duration = 2500) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// INIT
+buildCalendar();
+updateDisplays();
+
+// ===== API INTEGRATION =====
+// Expose hook so api.js can inject unavailable dates from the API
+window.setUnavailableDates = function(dates) {
+  // dates is an array of 'YYYY-MM-DD' strings from GET /api/v1/properties/{id}/availability
+  UNAVAILABLE.length = 0;
+  dates.forEach(d => UNAVAILABLE.push(d));
+  UNAVAIL_SET.clear();
+  UNAVAILABLE.forEach(d => UNAVAIL_SET.add(d));
+  buildCalendar();
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  BookingPage.init();
+});
+
+// Override submitBooking to use the API
+async function submitBooking() {
+  if (!startDate || !endDate) {
+    showToast('⚠️ Please select check-in and check-out dates first.', 2500); return;
+  }
+
+  const btn = document.querySelector('[data-submit-booking]');
+  const orig = btn?.textContent;
+  if (btn) { btn.disabled = true; btn.textContent = 'Processing…'; }
+
+  const propertyId = new URLSearchParams(location.search).get('id') || null;
+  const payload = {
+    property_id:    propertyId,
+    check_in_date:  fmtKey(startDate),
+    check_out_date: fmtKey(endDate),
+    guests: {
+      adults:   parseInt(document.getElementById('adults-num')?.textContent || 1),
+      children: parseInt(document.getElementById('children-num')?.textContent || 0),
+      infants:  parseInt(document.getElementById('infants-num')?.textContent || 0),
+    },
+  };
+
+  try {
+    if (propertyId) {
+      await API.createBooking(payload);
+      showToast('🎉 Booking confirmed! Redirecting…', 4000);
+    } else {
+      // Demo mode — no property_id in URL
+      showToast('🎉 Booking request sent! Made will respond within 24 hours.', 4000);
+    }
+    setTimeout(() => { window.location.href = '/'; }, 4500);
+  } catch (err) {
+    console.error('[booking] submit failed:', err);
+    if (err.status === 409) {
+      showToast('⚠️ Those dates are no longer available. Please choose different dates.', 3500);
+    } else if (err.status === 422) {
+      const msgs = Object.values(err.errors || {}).flat().join(' ');
+      showToast('⚠️ ' + (msgs || 'Please check your booking details.'), 3500);
+    } else if (err.status === 401) {
+      showToast('🔒 Please sign in to book.', 3000);
+      setTimeout(() => window.location.href = '/login', 3000);
+    } else {
+      showToast('❌ Booking failed. Please try again.', 3000);
+    }
+    if (btn) { btn.disabled = false; btn.textContent = orig; }
+  }
+}
+</script>
+</body>
+</html>

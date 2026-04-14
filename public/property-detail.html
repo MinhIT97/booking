@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Oceanfront Bali Villa — StayNest</title>
+  <meta name="description" content="Luxury beachfront villa in Seminyak, Bali. Private infinity pool, ocean views, personal butler. Book now on StayNest." />
+  <script src="/js/api.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: { brand: { DEFAULT: '#ff385c', dark: '#d90b2e' } },
+          keyframes: { fadeIn: { '0%': { opacity:0, transform:'scale(.97)' }, '100%': { opacity:1, transform:'scale(1)' } } },
+          animation: { fadeIn: 'fadeIn .25s ease forwards' }
+        }
+      }
+    }
+  </script>
+  <style>
+    .btn-primary { background: linear-gradient(135deg,#ff385c,#d90b2e); transition: all .3s ease; }
+    .btn-primary:hover { box-shadow: 0 10px 28px rgba(255,56,92,.4); transform: translateY(-2px); }
+    .thumb { transition: all .2s ease; cursor: pointer; }
+    .thumb.active { outline: 2px solid #ff385c; outline-offset: 1px; }
+    .thumb:hover { opacity: .85; }
+
+    /* Lightbox */
+    #lightbox { opacity:0; pointer-events:none; transition: opacity .25s ease; }
+    #lightbox.open { opacity:1; pointer-events:auto; }
+    #lightbox img { animation: fadeIn .25s ease; }
+
+    /* Booking card shadow */
+    .booking-card { box-shadow: 0 8px 40px rgba(0,0,0,.12); }
+
+    /* Gallery grid */
+    .gallery-main { min-height: 420px; }
+
+    /* Sticky booking card on desktop */
+    @media (min-width: 1024px) {
+      .booking-sticky { position: sticky; top: 88px; }
+    }
+
+    /* Tab underline */
+    .tab-btn { position: relative; }
+    .tab-btn::after { content:''; position:absolute; bottom:-1px; left:0; width:0; height:2px; background:#ff385c; transition: width .25s ease; }
+    .tab-btn.active::after { width: 100%; }
+    .tab-btn.active { color: #ff385c; }
+
+    /* Star */
+    .star { color: #f59e0b; }
+  </style>
+</head>
+<body class="font-sans antialiased bg-white text-gray-900">
+
+<!-- ===== NAV ===== -->
+<nav class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2">
+      <svg class="w-7 h-7 text-brand" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span class="text-lg font-bold text-gray-900">Stay<span class="text-brand">Nest</span></span>
+    </a>
+    <div class="flex items-center gap-3">
+      <a href="/properties.html" class="text-sm font-medium text-gray-600 hover:text-brand transition-colors flex items-center gap-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        All Properties
+      </a>
+      <button onclick="openBookingModal()" class="btn-primary text-white text-sm font-semibold px-5 py-2.5 rounded-full">Book Now</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== MAIN ===== -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-xs text-gray-400 mb-6">
+    <a href="/" class="hover:text-brand transition-colors">Home</a>
+    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    <a href="/properties.html" class="hover:text-brand transition-colors">Properties</a>
+    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    <span class="text-gray-600 font-medium">Oceanfront Bali Villa</span>
+  </nav>
+
+  <!-- Title row -->
+  <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-1">Oceanfront Bali Villa</h1>
+      <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500">
+        <span class="flex items-center gap-1">
+          <span class="star text-base">★</span>
+          <strong class="text-gray-900">5.0</strong>
+          <span class="underline cursor-pointer hover:text-brand">148 reviews</span>
+        </span>
+        <span>·</span>
+        <span>🏅 Superhost</span>
+        <span>·</span>
+        <span class="flex items-center gap-1 hover:underline cursor-pointer hover:text-brand">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+          Seminyak, Bali, Indonesia
+        </span>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button class="flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-brand border border-gray-200 px-4 py-2 rounded-xl hover:border-brand transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+        Share
+      </button>
+      <button id="wish-btn" onclick="toggleWish()" class="flex items-center gap-1.5 text-sm font-medium text-gray-700 border border-gray-200 px-4 py-2 rounded-xl hover:border-rose-400 hover:text-brand transition-colors">
+        <svg id="wish-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+        Save
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== GALLERY ===== -->
+  <div class="mb-8">
+    <!-- Main image + grid -->
+    <div class="gallery-main grid grid-cols-1 sm:grid-cols-4 gap-1.5 rounded-2xl overflow-hidden max-h-[520px]">
+      <div class="sm:col-span-2 sm:row-span-2 relative cursor-pointer" onclick="openLightbox(0)">
+        <img id="main-img" src="/property_beach.png" class="w-full h-full object-cover" style="min-height:220px;" alt="Main" />
+      </div>
+      <div class="hidden sm:block relative cursor-pointer group" onclick="openLightbox(1)">
+        <img src="/hero_villa.png" class="w-full h-full object-cover group-hover:opacity-90 transition" alt="Gallery 2" />
+      </div>
+      <div class="hidden sm:block relative cursor-pointer group" onclick="openLightbox(2)">
+        <img src="/property_cabin.png" class="w-full h-full object-cover group-hover:opacity-90 transition" alt="Gallery 3" />
+      </div>
+      <div class="hidden sm:block relative cursor-pointer group" onclick="openLightbox(3)">
+        <img src="/property_apartment.png" class="w-full h-full object-cover group-hover:opacity-90 transition" alt="Gallery 4" />
+      </div>
+      <div class="hidden sm:block relative cursor-pointer group" onclick="openLightbox(4)">
+        <img src="/hero_villa.png" class="w-full h-full object-cover group-hover:opacity-90 transition" alt="Gallery 5" />
+        <!-- "Show all" overlay -->
+        <div class="absolute inset-0 bg-black/40 flex items-center justify-center" onclick="openLightbox(4)">
+          <button class="bg-white text-gray-900 text-sm font-semibold px-4 py-2 rounded-xl flex items-center gap-1.5 hover:bg-gray-100 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            Show all 18 photos
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile thumbnail strip -->
+    <div class="flex gap-2 mt-2 sm:hidden overflow-x-auto pb-1 snap-x">
+      <div class="thumb active snap-start flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden" onclick="openLightbox(0)"><img src="/property_beach.png" class="w-full h-full object-cover" /></div>
+      <div class="thumb snap-start flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden" onclick="openLightbox(1)"><img src="/hero_villa.png" class="w-full h-full object-cover" /></div>
+      <div class="thumb snap-start flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden" onclick="openLightbox(2)"><img src="/property_cabin.png" class="w-full h-full object-cover" /></div>
+      <div class="thumb snap-start flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden" onclick="openLightbox(3)"><img src="/property_apartment.png" class="w-full h-full object-cover" /></div>
+      <div class="thumb snap-start flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden" onclick="openLightbox(4)"><img src="/hero_villa.png" class="w-full h-full object-cover" /></div>
+    </div>
+  </div>
+
+  <!-- ===== CONTENT + BOOKING ===== -->
+  <div class="flex flex-col lg:flex-row gap-12">
+
+    <!-- Left: details -->
+    <div class="flex-1 min-w-0">
+
+      <!-- Host row -->
+      <div class="flex items-center justify-between pb-6 border-b border-gray-100 mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-gray-900 mb-0.5">Hosted by Made Surya</h2>
+          <p class="text-sm text-gray-500">8 guests &nbsp;·&nbsp; 4 bedrooms &nbsp;·&nbsp; 4 beds &nbsp;·&nbsp; 3 baths</p>
+        </div>
+        <div class="w-14 h-14 rounded-full overflow-hidden border-2 border-brand flex-shrink-0">
+          <img src="/hero_villa.png" class="w-full h-full object-cover" alt="Host" />
+        </div>
+      </div>
+
+      <!-- Highlights -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="flex items-start gap-3">
+          <div class="text-2xl">🏅</div>
+          <div><p class="font-semibold text-gray-900 text-sm">Superhost</p><p class="text-xs text-gray-400">Experienced, highly-rated host.</p></div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="text-2xl">📍</div>
+          <div><p class="font-semibold text-gray-900 text-sm">Great location</p><p class="text-xs text-gray-400">95% of guests rated it 5 stars.</p></div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="text-2xl">🔑</div>
+          <div><p class="font-semibold text-gray-900 text-sm">Self check-in</p><p class="text-xs text-gray-400">Check yourself in with a key safe.</p></div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="border-b border-gray-100 mb-6 flex gap-6">
+        <button class="tab-btn active text-sm font-semibold pb-3 transition-colors" onclick="switchTab(this,'tab-desc')">Description</button>
+        <button class="tab-btn text-sm font-semibold pb-3 text-gray-500 hover:text-gray-900 transition-colors" onclick="switchTab(this,'tab-amenities')">Amenities</button>
+        <button class="tab-btn text-sm font-semibold pb-3 text-gray-500 hover:text-gray-900 transition-colors" onclick="switchTab(this,'tab-reviews')">Reviews</button>
+        <button class="tab-btn text-sm font-semibold pb-3 text-gray-500 hover:text-gray-900 transition-colors" onclick="switchTab(this,'tab-location')">Location</button>
+      </div>
+
+      <!-- Tab: Description -->
+      <div id="tab-desc" class="tab-content">
+        <p class="text-gray-600 leading-7 mb-4">
+          A stunning Balinese villa perched above the Indian Ocean with breathtaking panoramic views. Designed by a renowned local architect, the property seamlessly blends traditional Balinese craftsmanship with contemporary luxury.
+        </p>
+        <p class="text-gray-600 leading-7 mb-4">
+          The villa features a private infinity pool that appears to merge with the ocean horizon, an open-air living pavilion adorned with local timber and stone, and four spacious bedroom suites each with en-suite bathrooms and ocean-facing balconies.
+        </p>
+        <p class="text-gray-600 leading-7" id="desc-extra" style="display:none">
+          Services include a personal butler, private chef for breakfast, daily housekeeping, airport transfers, and in-villa spa treatments. The property sits on a cliff with direct access to a secluded beach below via a private pathway. Surrounded by tropical gardens maintained by a dedicated groundskeeper, this is the ultimate private retreat in Bali.
+        </p>
+        <button id="read-more" onclick="expandDesc()" class="text-brand font-semibold text-sm mt-2 hover:underline">Show more ↓</button>
+      </div>
+
+      <!-- Tab: Amenities -->
+      <div id="tab-amenities" class="tab-content hidden">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl text-sm"><span class="text-xl">🏊</span> Infinity Pool</div>
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl text-sm"><span class="text-xl">📶</span> Fast Wi-Fi</div>
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl text-sm"><span class="text-xl">🅿️</span> Free Parking</div>
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl text-sm"><span class="text-xl">🍳</span> Full Kitchen</div>
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl text-sm"><span class="text-xl">❄️</span> Air Conditioning</div>
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl text-sm"><span class="text-xl">👨‍🍳</span> Private Chef</div>
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl text-sm"><span class="text-xl">🛁</span> Hot Tub</div>
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl text-sm"><span class="text-xl">📺</span> Smart TV</div>
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl text-sm"><span class="text-xl">🐾</span> Pets Allowed</div>
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl text-sm"><span class="text-xl">🔒</span> Safe</div>
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl text-sm"><span class="text-xl">🌊</span> Beach Access</div>
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl text-sm"><span class="text-xl">🧖</span> Spa Service</div>
+        </div>
+      </div>
+
+      <!-- Tab: Reviews -->
+      <div id="tab-reviews" class="tab-content hidden">
+        <div class="flex items-center gap-4 mb-6 pb-6 border-b border-gray-100">
+          <div class="text-center">
+            <p class="text-5xl font-extrabold text-gray-900">5.0</p>
+            <div class="flex justify-center text-amber-400 text-lg mt-1">★★★★★</div>
+            <p class="text-xs text-gray-400 mt-1">148 reviews</p>
+          </div>
+          <div class="flex-1 space-y-2 text-sm">
+            <div class="flex items-center gap-2"><span class="text-gray-500 w-20">Cleanliness</span><div class="flex-1 bg-gray-100 rounded-full h-1.5"><div class="bg-brand h-1.5 rounded-full" style="width:98%"></div></div><span class="text-gray-700 font-medium w-6 text-right">5.0</span></div>
+            <div class="flex items-center gap-2"><span class="text-gray-500 w-20">Check-in</span><div class="flex-1 bg-gray-100 rounded-full h-1.5"><div class="bg-brand h-1.5 rounded-full" style="width:100%"></div></div><span class="text-gray-700 font-medium w-6 text-right">5.0</span></div>
+            <div class="flex items-center gap-2"><span class="text-gray-500 w-20">Location</span><div class="flex-1 bg-gray-100 rounded-full h-1.5"><div class="bg-brand h-1.5 rounded-full" style="width:95%"></div></div><span class="text-gray-700 font-medium w-6 text-right">4.9</span></div>
+            <div class="flex items-center gap-2"><span class="text-gray-500 w-20">Value</span><div class="flex-1 bg-gray-100 rounded-full h-1.5"><div class="bg-brand h-1.5 rounded-full" style="width:92%"></div></div><span class="text-gray-700 font-medium w-6 text-right">4.8</span></div>
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-6">
+          <div class="p-4 bg-gray-50 rounded-2xl">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600">S</div>
+              <div><p class="font-semibold text-sm text-gray-900">Sophie L.</p><p class="text-xs text-gray-400">March 2026</p></div>
+            </div>
+            <p class="text-sm text-gray-600 leading-relaxed">"Absolutely breathtaking. The infinity pool, the sunsets, the butler — everything was perfect. Will definitely return."</p>
+          </div>
+          <div class="p-4 bg-gray-50 rounded-2xl">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center font-bold text-green-600">M</div>
+              <div><p class="font-semibold text-sm text-gray-900">Marcus T.</p><p class="text-xs text-gray-400">February 2026</p></div>
+            </div>
+            <p class="text-sm text-gray-600 leading-relaxed">"Truly one of the most magical places I've ever stayed. The staff went above and beyond every single day."</p>
+          </div>
+          <div class="p-4 bg-gray-50 rounded-2xl">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-600">A</div>
+              <div><p class="font-semibold text-sm text-gray-900">Aiko Y.</p><p class="text-xs text-gray-400">January 2026</p></div>
+            </div>
+            <p class="text-sm text-gray-600 leading-relaxed">"The views are unreal. We had breakfast by the pool every morning watching the waves. Heaven on earth."</p>
+          </div>
+          <div class="p-4 bg-gray-50 rounded-2xl">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center font-bold text-amber-600">R</div>
+              <div><p class="font-semibold text-sm text-gray-900">Rafael M.</p><p class="text-xs text-gray-400">December 2025</p></div>
+            </div>
+            <p class="text-sm text-gray-600 leading-relaxed">"The private chef breakfast was phenomenal. Beautiful villa with impeccable attention to detail."</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Location -->
+      <div id="tab-location" class="tab-content hidden">
+        <div class="bg-gray-100 rounded-2xl overflow-hidden h-64 flex items-center justify-center relative">
+          <img src="/property_beach.png" class="w-full h-full object-cover opacity-40" />
+          <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+            <div class="text-4xl mb-3">📍</div>
+            <p class="font-bold text-gray-900 text-lg">Seminyak, Bali, Indonesia</p>
+            <p class="text-gray-600 text-sm mt-1">Exact address provided after booking confirmation</p>
+            <a href="https://maps.google.com" target="_blank" class="mt-4 btn-primary text-white text-sm font-semibold px-5 py-2.5 rounded-xl">Open in Google Maps →</a>
+          </div>
+        </div>
+        <div class="mt-4 grid sm:grid-cols-2 gap-3 text-sm">
+          <div class="flex items-start gap-2"><span class="text-xl">✈️</span><div><p class="font-semibold text-gray-900">Ngurah Rai Airport</p><p class="text-gray-400">20 min by car</p></div></div>
+          <div class="flex items-start gap-2"><span class="text-xl">🌊</span><div><p class="font-semibold text-gray-900">Seminyak Beach</p><p class="text-gray-400">2 min walk</p></div></div>
+          <div class="flex items-start gap-2"><span class="text-xl">🍽️</span><div><p class="font-semibold text-gray-900">Restaurants</p><p class="text-gray-400">5 min walk</p></div></div>
+          <div class="flex items-start gap-2"><span class="text-xl">🛍️</span><div><p class="font-semibold text-gray-900">Seminyak Square</p><p class="text-gray-400">10 min walk</p></div></div>
+        </div>
+      </div>
+
+    </div><!-- /left -->
+
+    <!-- ===== BOOKING CARD (right) ===== -->
+    <div class="w-full lg:w-96 flex-shrink-0">
+      <div class="booking-sticky">
+        <div class="booking-card bg-white rounded-3xl p-6 border border-gray-100">
+
+          <div class="flex items-baseline justify-between mb-5">
+            <div><span class="text-3xl font-extrabold text-gray-900">$380</span><span class="text-gray-400 text-sm"> /night</span></div>
+            <span class="flex items-center gap-1 text-sm font-semibold text-gray-700"><span class="star">★</span> 5.0 · <span class="text-gray-400 font-normal">148 reviews</span></span>
+          </div>
+
+          <!-- Date inputs -->
+          <div class="border border-gray-200 rounded-2xl overflow-hidden mb-3">
+            <div class="grid grid-cols-2 divide-x divide-gray-200">
+              <div class="p-3">
+                <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wide">Check-in</label>
+                <input id="card-checkin" type="date" class="w-full text-sm text-gray-900 focus:outline-none bg-transparent" oninput="calcCard()" />
+              </div>
+              <div class="p-3">
+                <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wide">Check-out</label>
+                <input id="card-checkout" type="date" class="w-full text-sm text-gray-900 focus:outline-none bg-transparent" oninput="calcCard()" />
+              </div>
+            </div>
+            <div class="border-t border-gray-200 p-3">
+              <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wide">Guests</label>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-900" id="guest-count">2 guests</span>
+                <div class="flex items-center gap-3">
+                  <button onclick="adjustGuests(-1)" class="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-brand hover:text-brand transition-colors text-lg leading-none">−</button>
+                  <span id="guests-num" class="text-sm font-semibold w-4 text-center">2</span>
+                  <button onclick="adjustGuests(1)" class="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-brand hover:text-brand transition-colors text-lg leading-none">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="openBookingModal()" class="btn-primary w-full text-white font-bold py-4 rounded-2xl text-base mb-4">Reserve</button>
+
+          <p class="text-center text-xs text-gray-400 mb-5">You won't be charged yet</p>
+
+          <!-- Price breakdown -->
+          <div id="card-breakdown" class="space-y-3 text-sm">
+            <div class="flex justify-between text-gray-600"><span class="underline cursor-pointer">$380 × <span id="card-nights">3</span> nights</span><span id="card-sub">$1,140</span></div>
+            <div class="flex justify-between text-gray-600"><span>Cleaning fee</span><span>$60</span></div>
+            <div class="flex justify-between text-gray-600"><span>Service fee</span><span>$114</span></div>
+            <div class="flex justify-between font-bold text-gray-900 pt-3 border-t border-gray-100 text-base"><span>Total</span><span id="card-total">$1,314</span></div>
+          </div>
+        </div>
+
+        <!-- Host card -->
+        <div class="mt-4 bg-gray-50 rounded-2xl p-4 flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full overflow-hidden border border-gray-200 flex-shrink-0">
+            <img src="/hero_villa.png" class="w-full h-full object-cover" />
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-gray-900">Made Surya · Superhost</p>
+            <p class="text-xs text-gray-400">Response rate: 100% · Usually within an hour</p>
+          </div>
+          <button class="ml-auto text-sm font-semibold text-brand border border-brand px-3 py-1.5 rounded-xl hover:bg-rose-50 transition-colors flex-shrink-0">Contact</button>
+        </div>
+      </div>
+    </div><!-- /booking card -->
+
+  </div><!-- /content -->
+</div><!-- /container -->
+
+<!-- ===== LIGHTBOX ===== -->
+<div id="lightbox" class="fixed inset-0 z-[70] bg-black/95 flex items-center justify-center" onclick="closeLightbox()">
+  <button class="absolute top-5 right-5 text-white/70 hover:text-white w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition z-10" onclick="closeLightbox()">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+  </button>
+  <button class="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition z-10" onclick="event.stopPropagation(); prevPhoto()">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  </button>
+  <button class="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition z-10" onclick="event.stopPropagation(); nextPhoto()">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+  </button>
+  <div class="relative max-w-5xl max-h-[85vh] w-full px-16" onclick="event.stopPropagation()">
+    <img id="lb-img" src="" key="0" class="w-full max-h-[80vh] object-contain rounded-xl select-none" />
+    <p id="lb-caption" class="text-white/60 text-center text-sm mt-3"></p>
+  </div>
+  <!-- Thumbnail strip -->
+  <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2" onclick="event.stopPropagation()">
+    <img src="/property_beach.png"     class="lb-thumb w-14 h-10 object-cover rounded-lg opacity-60 cursor-pointer hover:opacity-90 transition" onclick="jumpPhoto(0)" />
+    <img src="/hero_villa.png"          class="lb-thumb w-14 h-10 object-cover rounded-lg opacity-60 cursor-pointer hover:opacity-90 transition" onclick="jumpPhoto(1)" />
+    <img src="/property_cabin.png"     class="lb-thumb w-14 h-10 object-cover rounded-lg opacity-60 cursor-pointer hover:opacity-90 transition" onclick="jumpPhoto(2)" />
+    <img src="/property_apartment.png" class="lb-thumb w-14 h-10 object-cover rounded-lg opacity-60 cursor-pointer hover:opacity-90 transition" onclick="jumpPhoto(3)" />
+    <img src="/hero_villa.png"          class="lb-thumb w-14 h-10 object-cover rounded-lg opacity-60 cursor-pointer hover:opacity-90 transition" onclick="jumpPhoto(4)" />
+  </div>
+</div>
+
+<!-- ===== BOOKING MODAL ===== -->
+<div id="booking-modal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 opacity-0 pointer-events-none" style="transition:opacity .25s ease">
+  <div class="absolute inset-0 bg-black/60" onclick="closeBookingModal()"></div>
+  <div id="modal-box" class="relative bg-white rounded-3xl shadow-2xl w-full max-w-md p-8" style="transform:scale(.95) translateY(16px); transition:transform .3s ease">
+    <button onclick="closeBookingModal()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+    <h2 class="text-xl font-extrabold text-gray-900 mb-1">Confirm Reservation</h2>
+    <p class="text-sm text-gray-400 mb-6">Oceanfront Bali Villa · Seminyak, Bali</p>
+    <div class="bg-rose-50 border border-rose-100 rounded-2xl p-4 flex gap-4 mb-6">
+      <img src="/property_beach.png" class="w-20 h-16 object-cover rounded-xl flex-shrink-0" />
+      <div>
+        <p class="font-bold text-sm text-gray-900">Oceanfront Bali Villa</p>
+        <div class="flex items-center gap-1 text-xs text-amber-500 mt-0.5">★★★★★ <span class="text-gray-400">5.0 · 148 reviews</span></div>
+        <p class="text-xs text-gray-400 mt-1">Superhost · Private villa</p>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-3 mb-4">
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Check-in</label>
+        <input id="m-checkin" type="date" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand" oninput="calcModal()" />
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Check-out</label>
+        <input id="m-checkout" type="date" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand" oninput="calcModal()" />
+      </div>
+    </div>
+    <div id="modal-breakdown" class="bg-gray-50 rounded-2xl p-4 text-sm mb-5 hidden">
+      <div class="flex justify-between text-gray-500 mb-1"><span id="m-rate">$380 × 3 nights</span><span id="m-sub">$1,140</span></div>
+      <div class="flex justify-between text-gray-500 mb-1"><span>Cleaning fee</span><span>$60</span></div>
+      <div class="flex justify-between text-gray-500 mb-1"><span>Service fee</span><span id="m-fee">$114</span></div>
+      <div class="flex justify-between font-bold text-gray-900 text-base pt-2 border-t border-gray-200 mt-2"><span>Total</span><span id="m-total">$1,314</span></div>
+    </div>
+    <button class="btn-primary w-full text-white font-bold py-4 rounded-2xl text-base">Confirm &amp; Request to Book →</button>
+    <p class="text-center text-xs text-gray-400 mt-3">You won't be charged until the host accepts.</p>
+  </div>
+</div>
+
+<script>
+// ===== GALLERY =====
+const PHOTOS = ['/property_beach.png','/hero_villa.png','/property_cabin.png','/property_apartment.png','/hero_villa.png'];
+const CAPTIONS = ['Oceanfront view & infinity pool','Villa exterior at sunset','Master bedroom suite','Kitchen & living area','Tropical garden terrace'];
+let lbIdx = 0;
+
+function openLightbox(i) {
+  lbIdx = i;
+  document.getElementById('lb-img').src = PHOTOS[i];
+  document.getElementById('lb-img').setAttribute('key', i);
+  document.getElementById('lb-caption').textContent = `${CAPTIONS[i]} · Photo ${i+1} of ${PHOTOS.length}`;
+  document.querySelectorAll('.lb-thumb').forEach((t,idx) => t.style.opacity = idx===i ? '1' : '.6');
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function prevPhoto() { lbIdx = (lbIdx - 1 + PHOTOS.length) % PHOTOS.length; jumpPhoto(lbIdx); }
+function nextPhoto() { lbIdx = (lbIdx + 1) % PHOTOS.length; jumpPhoto(lbIdx); }
+function jumpPhoto(i) { lbIdx = i; openLightbox(i); }
+document.addEventListener('keydown', e => {
+  if (document.getElementById('lightbox').classList.contains('open')) {
+    if (e.key === 'ArrowRight') nextPhoto();
+    if (e.key === 'ArrowLeft') prevPhoto();
+    if (e.key === 'Escape') closeLightbox();
+  }
+  if (e.key === 'Escape') closeBookingModal();
+});
+
+// ===== TABS =====
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.remove('hidden');
+}
+
+// ===== READ MORE =====
+function expandDesc() {
+  document.getElementById('desc-extra').style.display = 'block';
+  document.getElementById('read-more').style.display = 'none';
+}
+
+// ===== GUESTS =====
+let guests = 2;
+function adjustGuests(d) {
+  guests = Math.max(1, Math.min(8, guests + d));
+  document.getElementById('guests-num').textContent = guests;
+  document.getElementById('guest-count').textContent = guests + ' guest' + (guests > 1 ? 's' : '');
+}
+
+// ===== BOOKING CARD CALC =====
+function calcCard() {
+  const ci = document.getElementById('card-checkin').value;
+  const co = document.getElementById('card-checkout').value;
+  if (!ci || !co) return;
+  const nights = Math.max(1, Math.round((new Date(co) - new Date(ci)) / 86400000));
+  const sub = 380 * nights;
+  const fee = Math.round(sub * 0.1);
+  document.getElementById('card-nights').textContent = nights;
+  document.getElementById('card-sub').textContent = '$' + sub.toLocaleString();
+  document.getElementById('card-total').textContent = '$' + (sub + 60 + fee).toLocaleString();
+}
+
+// ===== BOOKING MODAL =====
+function openBookingModal() {
+  const today = new Date().toISOString().split('T')[0];
+  const out3 = new Date(); out3.setDate(out3.getDate() + 3);
+  document.getElementById('m-checkin').value = document.getElementById('card-checkin').value || today;
+  document.getElementById('m-checkout').value = document.getElementById('card-checkout').value || out3.toISOString().split('T')[0];
+  calcModal();
+  const modal = document.getElementById('booking-modal');
+  modal.style.opacity = '1'; modal.style.pointerEvents = 'auto';
+  document.getElementById('modal-box').style.transform = 'scale(1) translateY(0)';
+  document.body.style.overflow = 'hidden';
+}
+function closeBookingModal() {
+  const modal = document.getElementById('booking-modal');
+  modal.style.opacity = '0'; modal.style.pointerEvents = 'none';
+  document.getElementById('modal-box').style.transform = 'scale(.95) translateY(16px)';
+  document.body.style.overflow = '';
+}
+function calcModal() {
+  const ci = document.getElementById('m-checkin').value;
+  const co = document.getElementById('m-checkout').value;
+  if (!ci || !co) return;
+  const nights = Math.max(1, Math.round((new Date(co) - new Date(ci)) / 86400000));
+  const sub = 380 * nights;
+  const fee = Math.round(sub * 0.1);
+  document.getElementById('m-rate').textContent = `$380 × ${nights} night${nights > 1 ? 's' : ''}`;
+  document.getElementById('m-sub').textContent = '$' + sub.toLocaleString();
+  document.getElementById('m-fee').textContent = '$' + fee;
+  document.getElementById('m-total').textContent = '$' + (sub + 60 + fee).toLocaleString();
+  document.getElementById('modal-breakdown').classList.remove('hidden');
+}
+
+// ===== WISHLIST TOGGLE =====
+let wished = false;
+function toggleWish() {
+  wished = !wished;
+  const icon = document.getElementById('wish-icon');
+  const btn = document.getElementById('wish-btn');
+  icon.setAttribute('fill', wished ? '#ff385c' : 'none');
+  icon.setAttribute('stroke', wished ? '#ff385c' : 'currentColor');
+  btn.innerHTML = (wished
+    ? '<svg id="wish-icon" class="w-4 h-4" fill="#ff385c" stroke="#ff385c" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg> Saved'
+    : '<svg id="wish-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg> Save');
+}
+
+// INIT
+(function() {
+  const today = new Date().toISOString().split('T')[0];
+  const out3 = new Date(); out3.setDate(out3.getDate() + 3);
+  document.getElementById('card-checkin').value = today;
+  document.getElementById('card-checkout').value = out3.toISOString().split('T')[0];
+  calcCard();
+})();
+
+// ===== API INTEGRATION =====
+document.addEventListener('DOMContentLoaded', () => {
+  // Hydrate from API if a property ID is present in the URL
+  DetailPage.init();
+});
+</script>
+
+</body>
+</html>
