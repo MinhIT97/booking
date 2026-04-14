@@ -3,5 +3,6 @@
     "Property": true,
     "Booking": true,
     "Host": true,
-    "Mobile": true
+    "Mobile": true,
+    "Admin": true
 }
