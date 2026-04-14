@@ -74,4 +74,55 @@ class BookingService extends BaseService
     {
         return $this->bookingRepository->getUnavailableDates($propertyId, $startDate, $endDate);
     }
+
+    /* ── Host-scoped helpers ─────────────────────────────────── */
+
+    public function countActiveByHost(string $hostId): int
+    {
+        return $this->bookingRepository->newHostQuery($hostId)
+            ->whereIn('status', ['confirmed', 'completed'])
+            ->count();
+    }
+
+    public function countPendingByHost(string $hostId): int
+    {
+        return $this->bookingRepository->newHostQuery($hostId)
+            ->where('status', 'pending')
+            ->count();
+    }
+
+    public function revenueThisMonthByHost(string $hostId): float
+    {
+        return (float) $this->bookingRepository->newHostQuery($hostId)
+            ->whereIn('status', ['confirmed', 'completed'])
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->sum('total_price');
+    }
+
+    public function revenueGrowthPercentByHost(string $hostId): int
+    {
+        $thisMonth = $this->revenueThisMonthByHost($hostId);
+        
+        $lastMonth = (float) $this->bookingRepository->newHostQuery($hostId)
+            ->whereIn('status', ['confirmed', 'completed'])
+            ->whereMonth('created_at', now()->subMonth()->month)
+            ->whereYear('created_at', now()->subMonth()->year)
+            ->sum('total_price');
+
+        if ($lastMonth == 0) {
+            return $thisMonth > 0 ? 100 : 0;
+        }
+
+        return (int) round((($thisMonth - $lastMonth) / $lastMonth) * 100);
+    }
+
+    public function recentByHost(string $hostId, int $limit = 8)
+    {
+        return $this->bookingRepository->newHostQuery($hostId)
+            ->with(['user', 'property'])
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get();
+    }
 }

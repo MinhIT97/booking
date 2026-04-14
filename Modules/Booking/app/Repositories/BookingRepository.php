@@ -58,4 +58,11 @@ class BookingRepository extends BaseRepository implements BookingRepositoryInter
                 });
         });
     }
+
+    public function newHostQuery(string $hostId)
+    {
+        return $this->newQuery()->whereHas('property', function ($query) use ($hostId) {
+            $query->where('host_id', $hostId);
+        });
+    }
 }

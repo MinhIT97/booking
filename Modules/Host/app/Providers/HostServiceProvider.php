@@ -1,21 +1,21 @@
 <?php
 
-namespace Modules\Auth\Providers;
+namespace Modules\Host\Providers;
 
 use Nwidart\Modules\Support\ModuleServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 
-class AuthServiceProvider extends ModuleServiceProvider
+class HostServiceProvider extends ModuleServiceProvider
 {
     /**
      * The name of the module.
      */
-    protected string $name = 'Auth';
+    protected string $name = 'Host';
 
     /**
      * The lowercase version of the module name.
      */
-    protected string $nameLower = 'auth';
+    protected string $nameLower = 'host';
 
     /**
      * Command classes to register.
@@ -33,19 +33,6 @@ class AuthServiceProvider extends ModuleServiceProvider
         EventServiceProvider::class,
         RouteServiceProvider::class,
     ];
-
-    /**
-     * Register the service provider.
-     */
-    public function register(): void
-    {
-        parent::register();
-
-        $this->app->bind(
-            \Modules\Auth\Repositories\UserRepositoryInterface::class,
-            \Modules\Auth\Repositories\UserRepository::class
-        );
-    }
 
     /**
      * Define module schedules.

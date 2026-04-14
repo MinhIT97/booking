@@ -14,4 +14,9 @@ class PropertyRepository extends BaseRepository implements PropertyRepositoryInt
     {
         parent::__construct($model);
     }
+
+    public function newHostQuery(string $hostId)
+    {
+        return $this->newQuery()->where('host_id', $hostId);
+    }
 }

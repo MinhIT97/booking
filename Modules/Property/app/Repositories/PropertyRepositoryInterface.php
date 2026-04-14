@@ -7,7 +7,10 @@ use App\Repositories\BaseRepositoryInterface;
 interface PropertyRepositoryInterface extends BaseRepositoryInterface
 {
     /**
-     * Add specialized methods unique to Property here.
+     * Return a base query scoped to a specific host_id.
+     * Used by PropertyService for host dashboard aggregates.
+     *
+     * @return \Illuminate\Database\Eloquent\Builder
      */
-    // public function searchWithFilters(array $filters);
+    public function newHostQuery(string $hostId);
 }

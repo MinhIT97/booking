@@ -1,0 +1,11 @@
+{
+    "name": "Host",
+    "alias": "host",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Host\\Providers\\HostServiceProvider"
+    ],
+    "files": []
+}

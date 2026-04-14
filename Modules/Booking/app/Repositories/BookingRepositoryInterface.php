@@ -15,4 +15,11 @@ interface BookingRepositoryInterface extends BaseRepositoryInterface
      * Guaranteed to use Redis caching under the hood.
      */
     public function getUnavailableDates(string $propertyId, string $startDate, string $endDate);
+
+    /**
+     * Return a base query of bookings scoped to properties owned by a specific host_id.
+     *
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function newHostQuery(string $hostId);
 }
