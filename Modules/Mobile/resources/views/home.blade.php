@@ -23,7 +23,7 @@
 
 @section('content')
     {{-- Categories --}}
-    <div class="sticky top-14 z-40 bg-white/80 backdrop-blur-md border-b border-gray-50 overflow-x-auto hide-scrollbar flex items-center gap-8 px-6 py-3">
+    <div class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-50 overflow-x-auto hide-scrollbar flex items-center gap-8 px-6 py-2">
         @foreach(['Amazing pools', 'Cabins', 'Beachfront', 'Luxe', 'Trending', 'Countryside'] as $cat)
             <div class="flex flex-col items-center gap-1.5 flex-shrink-0 @if($loop->first) border-b-2 border-black pb-1 @endif">
                 <div class="w-6 h-6 grayscale group-hover:grayscale-0">
