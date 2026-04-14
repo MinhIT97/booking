@@ -3,6 +3,7 @@
 namespace Modules\Property\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\Booking\Models\Booking;
 use Prettus\Repository\Contracts\Transformable;
 use Prettus\Repository\Traits\TransformableTrait;
 
@@ -22,4 +23,8 @@ class Property extends Model implements Transformable
      */
     protected $fillable = [];
 
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
 }
