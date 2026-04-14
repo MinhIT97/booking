@@ -8,9 +8,10 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class AdminUserService extends BaseService
 {
+
     public function __construct(protected AdminUserRepositoryInterface $repository)
     {
-        parent::__construct($repository);
+       $this->repository = $repository;
     }
 
     /**
@@ -33,5 +34,21 @@ class AdminUserService extends BaseService
 
         $newStatus = $user->status === 'active' ? 'inactive' : 'active';
         return $this->repository->update($userId, ['status' => $newStatus]);
+    }
+
+    /**
+     * Approve a user (usually a host).
+     */
+    public function approveUser(string $userId): bool
+    {
+        return $this->repository->update($userId, ['status' => 'active']);
+    }
+
+    /**
+     * Block a user.
+     */
+    public function blockUser(string $userId): bool
+    {
+        return $this->repository->update($userId, ['status' => 'blocked']);
     }
 }

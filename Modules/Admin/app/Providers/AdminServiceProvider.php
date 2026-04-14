@@ -54,5 +54,10 @@ class AdminServiceProvider extends ModuleServiceProvider
             \Modules\Admin\Repositories\AdminUserRepositoryInterface::class,
             \Modules\Admin\Repositories\AdminUserRepository::class
         );
+
+        $this->app->bind(
+            \Modules\Admin\Repositories\AdminPropertyRepositoryInterface::class,
+            \Modules\Admin\Repositories\AdminPropertyRepository::class
+        );
     }
 }

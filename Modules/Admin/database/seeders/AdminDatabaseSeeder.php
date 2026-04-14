@@ -53,14 +53,19 @@ class AdminDatabaseSeeder extends Seeder
             ]
         );
 
-        // Seed some more for pagination testing
+        // Seed some more for pagination and status testing
         for ($i = 1; $i <= 10; $i++) {
+            $status = 'active';
+            if ($i == 1) $status = 'pending';
+            if ($i == 2) $status = 'blocked';
+            if ($i % 4 == 0) $status = 'inactive';
+
             \App\Models\User::create([
                 'name' => "User $i",
                 'email' => "user$i@example.com",
                 'password' => \Illuminate\Support\Facades\Hash::make('password'),
-                'role_id' => $userRole->id,
-                'status' => $i % 3 == 0 ? 'inactive' : 'active',
+                'role_id' => $i % 3 == 0 ? $hostRole->id : $userRole->id,
+                'status' => $status,
             ]);
         }
     }
