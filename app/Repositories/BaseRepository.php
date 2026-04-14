@@ -37,11 +37,11 @@ abstract class BaseRepository implements BaseRepositoryInterface
     protected function newQuery()
     {
         $query = $this->model->newQuery();
-        
+
         if (!empty($this->with)) {
             $query = $query->with($this->with);
         }
-        
+
         return $query;
     }
 
@@ -60,7 +60,7 @@ abstract class BaseRepository implements BaseRepositoryInterface
     {
         $table = $this->model->getTable();
         $params['with'] = $this->with; // Include eager load context inside the cache string hash
-        
+
         $paramsString = md5(json_encode($params));
         return "{$table}_{$operation}_{$paramsString}";
     }
@@ -82,6 +82,11 @@ abstract class BaseRepository implements BaseRepositoryInterface
             return $this->newQuery()->get();
         });
 
+        if ($result instanceof \__PHP_Incomplete_Class) {
+            Cache::tags($this->getCacheTags())->forget($key);
+            $result = $this->newQuery()->get();
+        }
+
         $this->resetScope();
         return $result;
     }
@@ -92,6 +97,11 @@ abstract class BaseRepository implements BaseRepositoryInterface
         $result = Cache::tags($this->getCacheTags())->remember($key, $this->cacheTtl, function () use ($id) {
             return $this->newQuery()->find($id);
         });
+
+        if ($result instanceof \__PHP_Incomplete_Class) {
+            Cache::tags($this->getCacheTags())->forget($key);
+            $result = $this->newQuery()->find($id);
+        }
 
         $this->resetScope();
         return $result;
@@ -116,7 +126,7 @@ abstract class BaseRepository implements BaseRepositoryInterface
         if ($updated) {
             $this->clearCache();
         }
-        
+
         return $updated;
     }
 
@@ -132,7 +142,7 @@ abstract class BaseRepository implements BaseRepositoryInterface
         if ($deleted) {
             $this->clearCache();
         }
-        
+
         return $deleted;
     }
 
@@ -142,6 +152,11 @@ abstract class BaseRepository implements BaseRepositoryInterface
         $result = Cache::tags($this->getCacheTags())->remember($key, $this->cacheTtl, function () use ($criteria) {
             return $this->newQuery()->where($criteria)->get();
         });
+
+        if ($result instanceof \__PHP_Incomplete_Class) {
+            Cache::tags($this->getCacheTags())->forget($key);
+            $result = $this->newQuery()->where($criteria)->get();
+        }
 
         $this->resetScope();
         return $result;
@@ -154,6 +169,11 @@ abstract class BaseRepository implements BaseRepositoryInterface
         $result = Cache::tags($this->getCacheTags())->remember($key, $this->cacheTtl, function () use ($perPage) {
             return $this->newQuery()->paginate($perPage);
         });
+
+        if ($result instanceof \__PHP_Incomplete_Class || !($result instanceof LengthAwarePaginator)) {
+            Cache::tags($this->getCacheTags())->forget($key);
+            $result = $this->newQuery()->paginate($perPage);
+        }
 
         $this->resetScope();
         return $result;

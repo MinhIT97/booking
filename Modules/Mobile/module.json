@@ -1,0 +1,11 @@
+{
+    "name": "Mobile",
+    "alias": "mobile",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Mobile\\Providers\\MobileServiceProvider"
+    ],
+    "files": []
+}

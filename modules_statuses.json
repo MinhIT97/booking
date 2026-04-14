@@ -2,5 +2,6 @@
     "Auth": true,
     "Property": true,
     "Booking": true,
-    "Host": true
+    "Host": true,
+    "Mobile": true
 }
