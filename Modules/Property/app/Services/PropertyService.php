@@ -63,7 +63,7 @@ class PropertyService extends BaseService
 
         if (!empty($filters['q'])) {
             $q = '%' . $filters['q'] . '%';
-            $query->where(fn ($b) => $b->where('title', 'like', $q)->orWhere('city', 'like', $q));
+            $query->where(fn($b) => $b->where('title', 'like', $q)->orWhere('city', 'like', $q));
         }
         if (!empty($filters['type'])) {
             $query->where('type', $filters['type']);

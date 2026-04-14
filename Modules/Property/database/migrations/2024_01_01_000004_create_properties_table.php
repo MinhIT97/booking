@@ -14,6 +14,8 @@ return new class extends Migration
             $table->string('title');
             $table->text('description');
             $table->decimal('price_per_night', 10, 2);
+            $table->unsignedInteger('reviews_count')->default(0);
+            $table->decimal('average_rating', 3, 2)->default(0.00);
             $table->integer('max_guests');
             $table->integer('bedrooms');
             $table->integer('beds');
