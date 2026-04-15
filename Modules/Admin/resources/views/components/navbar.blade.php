@@ -1,5 +1,5 @@
 {{-- Modules\Admin\resources\views\components\navbar.blade.php --}}
-<header class="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-6 gap-4 sticky top-0 z-20 shadow-sm">
+<header class="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-6 lg:px-8 gap-4 sticky top-0 z-20 shadow-sm">
 
     {{-- Mobile hamburger --}}
     <button id="menu-btn"
