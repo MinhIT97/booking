@@ -39,7 +39,8 @@ class PropertyController extends Controller
      */
     public function create(): View
     {
-        return view('host::properties.create');
+        $propertyTypes = $this->propertyService->getPropertyTypes();
+        return view('host::properties.create', compact('propertyTypes'));
     }
 
     /**
@@ -102,8 +103,9 @@ class PropertyController extends Controller
         }
 
         $property->load(['images']);
+        $propertyTypes = $this->propertyService->getPropertyTypes();
 
-        return view('host::properties.edit', compact('property'));
+        return view('host::properties.edit', compact('property', 'propertyTypes'));
     }
 
     /**

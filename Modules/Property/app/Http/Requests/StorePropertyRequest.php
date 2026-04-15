@@ -28,6 +28,7 @@ class StorePropertyRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
+            'property_type_id' => 'required|uuid|exists:property_types,id',
             'description' => 'required|string',
             'price_per_night' => 'required|numeric|min:0',
             'max_guests' => 'required|integer|min:1',

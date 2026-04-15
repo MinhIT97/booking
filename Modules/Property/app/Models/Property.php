@@ -8,17 +8,15 @@ use Modules\Property\Enums\PropertyStatus;
 use Prettus\Repository\Contracts\Transformable;
 use Prettus\Repository\Traits\TransformableTrait;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\User;
 
 /**
  * Class Property.
  *
  * @package namespace Modules\Property\Models;
  */
-
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\User;
-
 class Property extends Model implements Transformable
 {
     use TransformableTrait, HasUuids, SoftDeletes;
@@ -26,6 +24,7 @@ class Property extends Model implements Transformable
     protected $fillable = [
         'host_id',
         'user_id',
+        'property_type_id',
         'title',
         'description',
         'price_per_night',
@@ -48,14 +47,22 @@ class Property extends Model implements Transformable
         'status' => PropertyStatus::class,
     ];
 
-    public function host()
+    /**
+     * Relationship with property type.
+     */
+    public function propertyType()
     {
-        return $this->belongsTo(User::class, 'host_id');
+        return $this->belongsTo(PropertyType::class);
     }
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
+    }
+
+    public function host()
+    {
+        return $this->belongsTo(User::class, 'host_id');
     }
 
     public function images()
@@ -71,6 +78,16 @@ class Property extends Model implements Transformable
     public function bookings()
     {
         return $this->hasMany(Booking::class);
+    }
+
+    public function amenities()
+    {
+        return $this->belongsToMany(Property::class, 'property_amenities', 'property_id', 'amenity_id');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Property::class, 'property_id');
     }
 
 

@@ -4,5 +4,6 @@
     "Booking": true,
     "Host": true,
     "Mobile": true,
-    "Admin": true
+    "Admin": true,
+    "Web": true
 }

@@ -38,19 +38,19 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="type" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                    <label for="property_type_id" class="block text-sm font-semibold text-gray-700 mb-1.5">
                         Property Type <span class="text-brand">*</span>
                     </label>
-                    <select id="type" name="type"
-                        class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 @error('type') border-red-400 @enderror">
+                    <select id="property_type_id" name="property_type_id"
+                        class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 @error('property_type_id') border-red-400 @enderror">
                         <option value="">Select type…</option>
-                        @foreach (['villa', 'apartment', 'cabin', 'studio', 'house'] as $t)
-                        <option value="{{ $t }}" {{ old('type') === $t ? 'selected' : '' }}>
-                            {{ ucfirst($t) }}
+                        @foreach ($propertyTypes as $type)
+                        <option value="{{ $type->id }}" {{ old('property_type_id') === $type->id ? 'selected' : '' }}>
+                            {{ $type->icon }} {{ $type->name }}
                         </option>
                         @endforeach
                     </select>
-                    @error('type')
+                    @error('property_type_id')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>

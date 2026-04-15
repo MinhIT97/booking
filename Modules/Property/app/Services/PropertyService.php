@@ -4,6 +4,7 @@ namespace Modules\Property\Services;
 
 use App\Services\BaseService;
 use Modules\Property\Repositories\PropertyRepositoryInterface;
+use Modules\Property\Repositories\PropertyTypeRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -12,18 +13,42 @@ use Modules\Property\Enums\PropertyStatus;
 class PropertyService extends BaseService
 {
     /**
-     * Inject our explicit Repository interface, keeping the Service completely abstracted from DB calls.
+     * Inject Repository interfaces.
      */
-    public function __construct(protected PropertyRepositoryInterface $repository) {}
+    public function __construct(
+        protected PropertyRepositoryInterface $repository,
+        protected PropertyTypeRepositoryInterface $typeRepository
+    ) {}
 
     public function getAllProperties(array $filters = []): LengthAwarePaginator
     {
-        return $this->repository->with(['user', 'images', 'primaryImage', 'host'])->paginate(15);
+        $query = $this->repository->with(['user', 'images', 'primaryImage', 'host', 'propertyType']);
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['property_type_id'])) {
+            $query->where('property_type_id', $filters['property_type_id']);
+        }
+
+        if (!empty($filters['type_slug'])) {
+            $query->whereHas('propertyType', function($q) use ($filters) {
+                $q->where('slug', $filters['type_slug']);
+            });
+        }
+
+        return $query->paginate(15);
+    }
+
+    public function getPropertyTypes(): Collection
+    {
+        return $this->typeRepository->all();
     }
 
     public function getPropertyById(string $id): ?Model
     {
-        return $this->repository->with(['host', 'images', 'primaryImage'])->find($id);
+        return $this->repository->with(['host', 'images', 'primaryImage', 'propertyType'])->find($id);
     }
 
     public function createProperty(array $data, ?string $hostId = null): Model
@@ -66,9 +91,11 @@ class PropertyService extends BaseService
             $q = '%' . $filters['q'] . '%';
             $query->where(fn($b) => $b->where('title', 'like', $q)->orWhere('city', 'like', $q));
         }
-        if (!empty($filters['type'])) {
-            $query->where('type', $filters['type']);
+
+        if (!empty($filters['property_type_id'])) {
+            $query->where('property_type_id', $filters['property_type_id']);
         }
+
         if (!empty($filters['status'])) {
             $status = PropertyStatus::fromInput($filters['status']);
 
@@ -77,7 +104,7 @@ class PropertyService extends BaseService
             }
         }
 
-        return $query->with(['images', 'primaryImage'])->withCount('bookings')->orderByDesc('created_at')->paginate(9);
+        return $query->with(['images', 'primaryImage', 'propertyType'])->withCount('bookings')->orderByDesc('created_at')->paginate(9);
     }
 
     public function countByHost(string $hostId): int

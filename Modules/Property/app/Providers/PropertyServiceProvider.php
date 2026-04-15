@@ -6,6 +6,8 @@ use Nwidart\Modules\Support\ModuleServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 use Modules\Property\Repositories\PropertyRepositoryInterface;
 use Modules\Property\Repositories\PropertyRepository;
+use Modules\Property\Repositories\PropertyTypeRepositoryInterface;
+use Modules\Property\Repositories\PropertyTypeRepository;
 
 class PropertyServiceProvider extends ModuleServiceProvider
 {
@@ -27,6 +29,7 @@ class PropertyServiceProvider extends ModuleServiceProvider
      */
     public array $bindings = [
         PropertyRepositoryInterface::class => PropertyRepository::class,
+        PropertyTypeRepositoryInterface::class => PropertyTypeRepository::class,
     ];
 
     /**

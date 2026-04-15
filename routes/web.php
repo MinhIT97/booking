@@ -2,6 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+use Modules\Web\Http\Controllers\WebController;
+
+Route::get('/', [WebController::class, 'index'])->name('landing');

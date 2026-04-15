@@ -24,14 +24,13 @@
 @section('content')
     {{-- Categories --}}
     <div class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-50 overflow-x-auto hide-scrollbar flex items-center gap-8 px-6 py-2">
-        @foreach(['Amazing pools', 'Cabins', 'Beachfront', 'Luxe', 'Trending', 'Countryside'] as $cat)
-            <div class="flex flex-col items-center gap-1.5 flex-shrink-0 @if($loop->first) border-b-2 border-black pb-1 @endif">
-                <div class="w-6 h-6 grayscale group-hover:grayscale-0">
-                    {{-- Using emojis as icons for light weight --}}
-                    <span>{{ ['🏊', '🏕️', '🏖️', '💎', '🔥', '🌄'][$loop->index] }}</span>
+        @foreach($categories as $category)
+            <a href="?type={{ $category->slug }}" class="flex flex-col items-center gap-1.5 flex-shrink-0 group transition-all {{ request('type') == $category->slug ? 'border-b-2 border-black pb-1' : '' }}">
+                <div class="w-6 h-6 group-hover:grayscale-0 {{ request('type') == $category->slug ? '' : 'grayscale' }}">
+                    <span>{{ $category->icon }}</span>
                 </div>
-                <span class="text-[11px] font-medium {{ $loop->first ? 'text-black' : 'text-gray-500' }}">{{ $cat }}</span>
-            </div>
+                <span class="text-[11px] font-medium {{ request('type') == $category->slug ? 'text-black' : 'text-gray-500' }}">{{ $category->name }}</span>
+            </a>
         @endforeach
     </div>
 

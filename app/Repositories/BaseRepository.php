@@ -15,6 +15,9 @@ abstract class BaseRepository implements BaseRepositoryInterface
     /** @var array Relations to eager load natively */
     protected array $with = [];
 
+    /** @var array Filter scopes to apply to the next query */
+    protected array $scopes = [];
+
     /**
      * BaseRepository constructor.
      *
@@ -31,6 +34,76 @@ abstract class BaseRepository implements BaseRepositoryInterface
         return $this;
     }
 
+    public function where(string|array|\Closure $column, $operator = null, $value = null): self
+    {
+        $this->scopes[] = ['method' => 'where', 'params' => func_get_args()];
+        return $this;
+    }
+
+    public function whereHas(string $relation, \Closure $callback = null, string $operator = '>=', int $count = 1): self
+    {
+        $this->scopes[] = ['method' => 'whereHas', 'params' => func_get_args()];
+        return $this;
+    }
+
+    public function withCount(array|string $relations): self
+    {
+        $this->scopes[] = ['method' => 'withCount', 'params' => func_get_args()];
+        return $this;
+    }
+
+    public function orderByDesc(string $column): self
+    {
+        $this->scopes[] = ['method' => 'orderByDesc', 'params' => func_get_args()];
+        return $this;
+    }
+
+    public function limit(int $value): self
+    {
+        $this->scopes[] = ['method' => 'limit', 'params' => func_get_args()];
+        return $this;
+    }
+
+    public function whereMonth(string $column, $operator, $value = null): self
+    {
+        $this->scopes[] = ['method' => 'whereMonth', 'params' => func_get_args()];
+        return $this;
+    }
+
+    public function whereYear(string $column, $operator, $value = null): self
+    {
+        $this->scopes[] = ['method' => 'whereYear', 'params' => func_get_args()];
+        return $this;
+    }
+
+    public function get(): Collection
+    {
+        $result = $this->newQuery()->get();
+        $this->resetScope();
+        return $result;
+    }
+
+    public function count(): int
+    {
+        $result = $this->newQuery()->count();
+        $this->resetScope();
+        return $result;
+    }
+
+    public function avg(string $column)
+    {
+        $result = $this->newQuery()->avg($column);
+        $this->resetScope();
+        return $result;
+    }
+
+    public function sum(string $column)
+    {
+        $result = $this->newQuery()->sum($column);
+        $this->resetScope();
+        return $result;
+    }
+
     /**
      * Build the query and natively attach eager loads.
      */
@@ -42,6 +115,10 @@ abstract class BaseRepository implements BaseRepositoryInterface
             $query = $query->with($this->with);
         }
 
+        foreach ($this->scopes as $scope) {
+            $query = $query->{$scope['method']}(...$scope['params']);
+        }
+
         return $query;
     }
 
@@ -51,6 +128,7 @@ abstract class BaseRepository implements BaseRepositoryInterface
     protected function resetScope(): void
     {
         $this->with = [];
+        $this->scopes = [];
     }
 
     /**

@@ -35,16 +35,16 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="type" class="block text-sm font-semibold text-gray-700 mb-1.5">Property Type</label>
-                    <select id="type" name="type"
-                            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand @error('type') border-red-400 @enderror">
-                        @foreach (['villa', 'apartment', 'cabin', 'studio', 'house'] as $t)
-                            <option value="{{ $t }}" {{ old('type', $property->type) === $t ? 'selected' : '' }}>
-                                {{ ucfirst($t) }}
+                    <label for="property_type_id" class="block text-sm font-semibold text-gray-700 mb-1.5">Property Type</label>
+                    <select id="property_type_id" name="property_type_id"
+                            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand @error('property_type_id') border-red-400 @enderror">
+                        @foreach ($propertyTypes as $type)
+                            <option value="{{ $type->id }}" {{ old('property_type_id', $property->property_type_id) === $type->id ? 'selected' : '' }}>
+                                {{ $type->icon }} {{ $type->name }}
                             </option>
                         @endforeach
                     </select>
-                    @error('type')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                    @error('property_type_id')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                 </div>
 
                 <div>

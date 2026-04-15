@@ -5,21 +5,26 @@ namespace Modules\Mobile\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Property\Services\PropertyService;
-use Modules\Booking\Services\BookingService;
-use Modules\Mobile\Http\Requests\StoreBookingRequest;
-use Modules\Booking\DTOs\BookingDTO;
+use Modules\Property\Enums\PropertyStatus;
 
 class MobileController extends Controller
 {
-    public function __construct(
-        private PropertyService $propertyService,
-        private BookingService $bookingService
-    ) {}
+    public function __construct(private PropertyService $propertyService) {}
 
+    /**
+     * Mobile Webview Home Screen.
+     */
     public function home(Request $request)
     {
-        $properties = $this->propertyService->getAllProperties($request->all());
-        return view('mobile::home', compact('properties'));
+        $categories = $this->propertyService->getPropertyTypes();
+
+        $properties = $this->propertyService->getAllProperties([
+            'status' => PropertyStatus::Active->value,
+            'type_slug' => $request->query('type'),
+            ...$request->all()
+        ]);
+        
+        return view('mobile::home', compact('properties', 'categories'));
     }
 
     public function detail($id)
@@ -32,28 +37,5 @@ class MobileController extends Controller
     {
         $property = $this->propertyService->getPropertyById($property_id);
         return view('mobile::booking', compact('property'));
-    }
-
-    public function storeBooking(StoreBookingRequest $request)
-    {
-        try {
-            $dto = BookingDTO::fromRequest($request);
-            $this->bookingService->createBooking($dto);
-            
-            return redirect()->route('mobile.bookings.index')->with('success', 'Booking confirmed!');
-        } catch (\Exception $e) {
-            return back()->withErrors(['error' => $e->getMessage()])->withInput();
-        }
-    }
-
-    public function trips()
-    {
-        $bookings = $this->bookingService->getUserBookings(auth()->id());
-        return view('mobile::bookings', compact('bookings'));
-    }
-
-    public function profile()
-    {
-        return view('mobile::profile');
     }
 }

@@ -28,6 +28,7 @@ class UpdatePropertyRequest extends FormRequest
     {
         return [
             'title' => 'sometimes|string|max:255',
+            'property_type_id' => 'sometimes|uuid|exists:property_types,id',
             'description' => 'sometimes|string',
             'price_per_night' => 'sometimes|numeric|min:0',
             'max_guests' => 'sometimes|integer|min:1',

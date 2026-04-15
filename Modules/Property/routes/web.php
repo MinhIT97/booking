@@ -1,8 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Property\Http\Controllers\PropertyController;
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::resource('properties', PropertyController::class)->names('property');
-});
+/**
+ * Default web routes for Property module have been disabled 
+ * in favor of the specialized Modules/Web and Modules/Host modules.
+ * This prevents route conflicts with the user-facing property detail pages.
+ */
