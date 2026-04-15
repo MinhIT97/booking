@@ -3,6 +3,8 @@
 namespace Modules\Property\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
+use Modules\Property\Enums\PropertyStatus;
 
 class UpdatePropertyRequest extends FormRequest
 {
@@ -24,8 +26,10 @@ class UpdatePropertyRequest extends FormRequest
             'address' => 'sometimes|string|max:255',
             'city' => 'sometimes|string|max:255',
             'state' => 'nullable|string|max:255',
-            'country' => 'sometimes|string|max:255',
-            'status' => 'sometimes|in:pending,approved,rejected',
+            'country'        => 'sometimes|string|max:255',
+            'status'         => ['sometimes', new Enum(PropertyStatus::class)],
+            'images'         => ['sometimes', 'array', 'max:10'],
+            'images.*'       => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ];
     }
 }

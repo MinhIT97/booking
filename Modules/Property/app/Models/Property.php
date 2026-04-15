@@ -4,14 +4,17 @@ namespace Modules\Property\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Modules\Booking\Models\Booking;
+use Modules\Property\Enums\PropertyStatus;
 use Prettus\Repository\Contracts\Transformable;
 use Prettus\Repository\Traits\TransformableTrait;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 /**
  * Class Property.
  *
  * @package namespace Modules\Property\Models;
  */
+
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\User;
@@ -21,9 +24,28 @@ class Property extends Model implements Transformable
     use TransformableTrait, HasUuids, SoftDeletes;
 
     protected $fillable = [
-        'host_id', 'user_id', 'title', 'description', 'price_per_night', 'max_guests',
-        'bedrooms', 'beds', 'bathrooms', 'address', 'city', 'state', 'country',
-        'latitude', 'longitude', 'status', 'reviews_count', 'average_rating'
+        'host_id',
+        'user_id',
+        'title',
+        'description',
+        'price_per_night',
+        'max_guests',
+        'bedrooms',
+        'beds',
+        'bathrooms',
+        'address',
+        'city',
+        'state',
+        'country',
+        'latitude',
+        'longitude',
+        'status',
+        'reviews_count',
+        'average_rating'
+    ];
+
+    protected $casts = [
+        'status' => PropertyStatus::class,
     ];
 
     public function host()
@@ -49,5 +71,25 @@ class Property extends Model implements Transformable
     public function bookings()
     {
         return $this->hasMany(Booking::class);
+    }
+
+
+    protected function statusBadge(): Attribute
+    {
+
+        return Attribute::get(function () {
+            return match ($this->status) {
+                PropertyStatus::Active => 'bg-green-500',
+                PropertyStatus::Draft  => 'bg-amber-400',
+                default                => 'bg-gray-400',
+            };
+        });
+    }
+
+    protected function statusLabel(): Attribute
+    {
+        return Attribute::get(function () {
+            return $this->status?->label() ?? 'Draft';
+        });
     }
 }

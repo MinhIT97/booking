@@ -3,6 +3,8 @@
 namespace Modules\Property\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
+use Modules\Property\Enums\PropertyStatus;
 
 class StorePropertyRequest extends FormRequest
 {
@@ -27,8 +29,9 @@ class StorePropertyRequest extends FormRequest
             'country' => 'required|string|max:255',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
-            'images' => 'nullable|array',
-            'images.*' => 'url',
+            'images'   => ['nullable', 'array', 'max:10'],
+            'images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'], // max 5 MB each
+            'status'   => ['sometimes', new Enum(PropertyStatus::class)],
         ];
     }
 }

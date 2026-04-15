@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Modules\Property\Enums\PropertyStatus;
 use Modules\Property\Services\PropertyService;
 use Modules\Property\Http\Requests\StorePropertyRequest;
 use Modules\Property\Http\Requests\UpdatePropertyRequest;
@@ -48,7 +49,7 @@ class PropertyController extends Controller
     public function store(StorePropertyRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        $validated['status'] = $request->input('status', '1'); // 'active' or 'draft'
+        $validated['status'] = PropertyStatus::tryFrom($request->input('status', '')) ?? PropertyStatus::default();
 
         $property = $this->propertyService->createProperty($validated, auth()->id());
 

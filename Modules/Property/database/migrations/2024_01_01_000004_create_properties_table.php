@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('country');
             $table->decimal('latitude', 10, 8)->nullable();
             $table->decimal('longitude', 11, 8)->nullable();
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending')->index();
+            $table->tinyInteger('status'); //pending 2 approved 3 rejected 4
             $table->timestamps();
             $table->softDeletes();
 
