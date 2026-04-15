@@ -25,7 +25,7 @@ class PropertyController extends Controller
         $filters = $request->only(['q', 'type', 'status']);
 
         $properties = $this->propertyService->getByHost(
-            hostId:  auth()->id(),
+            hostId: auth()->id(),
             filters: $filters,
         );
 
@@ -48,7 +48,7 @@ class PropertyController extends Controller
     public function store(StorePropertyRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        $validated['status'] = $request->input('status', 'draft'); // 'active' or 'draft'
+        $validated['status'] = $request->input('status', '1'); // 'active' or 'draft'
 
         $property = $this->propertyService->createProperty($validated, auth()->id());
 
