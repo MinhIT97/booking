@@ -22,7 +22,7 @@ class PropertyService extends BaseService
 
     public function getPropertyById(string $id): ?Model
     {
-        return $this->repository->find($id);
+        return $this->repository->with(['host', 'images', 'primaryImage'])->find($id);
     }
 
     public function createProperty(array $data, ?string $hostId = null): Model

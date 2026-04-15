@@ -8,6 +8,17 @@ use Modules\Property\Enums\PropertyStatus;
 
 class StorePropertyRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('status')) {
+            $status = PropertyStatus::fromInput($this->input('status'));
+
+            if ($status) {
+                $this->merge(['status' => $status->value]);
+            }
+        }
+    }
+
     public function authorize(): bool
     {
         return true; 

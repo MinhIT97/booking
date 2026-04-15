@@ -21,6 +21,11 @@ class PropertyImage extends Model
         'is_primary' => 'boolean',
     ];
 
+    public function getUrlAttribute(): ?string
+    {
+        return $this->image_url;
+    }
+
     public function property()
     {
         return $this->belongsTo(Property::class);

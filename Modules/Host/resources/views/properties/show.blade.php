@@ -49,7 +49,7 @@
             <dl class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                 @foreach ([
                     'Type'        => ucfirst($property->type ?? '—'),
-                    'Status'      => ucfirst($property->status ?? '—'),
+                    'Status'      => $property->status_label,
                     'Max Guests'  => $property->max_guests ?? '—',
                     'Bedrooms'    => $property->bedrooms ?? '—',
                     'Bathrooms'   => $property->bathrooms ?? '—',

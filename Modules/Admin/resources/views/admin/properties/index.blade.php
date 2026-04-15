@@ -15,7 +15,7 @@
     </div>
     <div class="stat-card">
         <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Awaiting Approval</p>
-        <p class="text-3xl font-extrabold text-amber-500">{{ $properties->where('status', 'pending')->count() }}</p>
+        <p class="text-3xl font-extrabold text-amber-500">{{ $properties->where('status_key', 'draft')->count() }}</p>
     </div>
 </div>
 
@@ -29,8 +29,8 @@
         <div>
             <select name="status" onchange="this.form.submit()" class="w-full py-2.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-all appearance-none cursor-pointer">
                 <option value="">All Statuses</option>
-                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
+                <option value="draft" {{ in_array(request('status'), ['draft', 'pending'], true) ? 'selected' : '' }}>Draft</option>
+                <option value="active" {{ in_array(request('status'), ['active', 'approved'], true) ? 'selected' : '' }}>Active</option>
                 <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
             </select>
         </div>
@@ -86,12 +86,12 @@
                         ${{ number_format($property->price_per_night, 0) }}
                     </td>
                     <td class="px-6 py-4">
-                        @if($property->status === 'approved')
+                        @if($property->status_key === 'active')
                             <span class="inline-flex items-center gap-1.5 text-xs font-bold text-green-600">
                                 <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                                Approved
+                                Active
                             </span>
-                        @elseif($property->status === 'rejected')
+                        @elseif($property->status_key === 'rejected')
                             <span class="inline-flex items-center gap-1.5 text-xs font-bold text-red-600">
                                 <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
                                 Rejected
@@ -99,13 +99,13 @@
                         @else
                             <span class="inline-flex items-center gap-1.5 text-xs font-bold text-amber-500">
                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-                                Pending
+                                Draft
                             </span>
                         @endif
                     </td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex items-center justify-end gap-2">
-                            @if($property->status === 'pending')
+                            @if($property->status_key === 'draft')
                                 <form action="{{ route('admin.properties.approve', $property->id) }}" method="POST">
                                     @csrf
                                     <button type="submit" class="btn-outline px-3 py-1.5 border-green-100 text-green-600 hover:bg-green-50 text-[11px] uppercase tracking-wider font-bold">
@@ -120,7 +120,7 @@
                                 </form>
                             @endif
 
-                            @if($property->status === 'approved')
+                            @if($property->status_key === 'active')
                                 <form action="{{ route('admin.properties.reject', $property->id) }}" method="POST">
                                     @csrf
                                     <button type="submit" class="p-2 text-gray-400 hover:text-red-500 transition-colors" title="Reject Property">
@@ -129,7 +129,7 @@
                                 </form>
                             @endif
 
-                            @if($property->status === 'rejected')
+                            @if($property->status_key === 'rejected')
                                 <form action="{{ route('admin.properties.approve', $property->id) }}" method="POST">
                                     @csrf
                                     <button type="submit" class="p-2 text-gray-400 hover:text-green-500 transition-colors" title="Approve Property">

@@ -8,6 +8,7 @@ use Modules\Property\Repositories\PropertyRepositoryInterface;
 use Modules\Booking\DTOs\BookingDTO;
 use Exception;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Modules\Booking\Models\Booking;
 
@@ -57,6 +58,7 @@ class BookingService extends BaseService
                 'user_id' => $dto->userId,
                 'check_in_date' => $dto->checkInDate,
                 'check_out_date' => $dto->checkOutDate,
+                'guests' => $dto->guests,
                 'total_price' => $totalPrice,
                 'status' => 'pending'
             ]);
@@ -68,6 +70,32 @@ class BookingService extends BaseService
     public function getUserBookings(string $userId)
     {
         return $this->bookingRepository->with(['property', 'property.primaryImage'])->findBy(['user_id' => $userId]);
+    }
+
+    public function bookProperty(array $data, string $userId): Booking
+    {
+        return $this->createBooking(new BookingDTO([
+            'property_id' => $data['property_id'],
+            'user_id' => $userId,
+            'check_in_date' => $data['check_in_date'],
+            'check_out_date' => $data['check_out_date'],
+            'guests' => $data['guests'],
+        ]));
+    }
+
+    public function updateBookingStatus(string $id, string $status): ?Model
+    {
+        return $this->executeInTransaction(function () use ($id, $status) {
+            $booking = $this->bookingRepository->with(['property', 'user'])->find($id);
+
+            if (!$booking) {
+                return null;
+            }
+
+            $this->bookingRepository->update($id, ['status' => $status]);
+
+            return $booking->refresh()->load(['property', 'user']);
+        });
     }
 
     public function getPropertyAvailability(string $propertyId, string $startDate, string $endDate)

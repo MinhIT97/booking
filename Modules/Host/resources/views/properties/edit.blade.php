@@ -51,8 +51,8 @@
                     <label for="status" class="block text-sm font-semibold text-gray-700 mb-1.5">Status</label>
                     <select id="status" name="status"
                             class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand">
-                        @foreach (['active' => 'Active', 'inactive' => 'Inactive', 'draft' => 'Draft'] as $val => $label)
-                            <option value="{{ $val }}" {{ old('status', $property->status) === $val ? 'selected' : '' }}>
+                        @foreach (['active' => 'Active', 'draft' => 'Draft', 'rejected' => 'Rejected'] as $val => $label)
+                            <option value="{{ $val }}" {{ old('status', $property->status_key) === $val ? 'selected' : '' }}>
                                 {{ $label }}
                             </option>
                         @endforeach

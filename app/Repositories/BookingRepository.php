@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\Models\Booking;
+use Modules\Booking\Models\Booking;
 use Illuminate\Support\Collection;
 
 class BookingRepository

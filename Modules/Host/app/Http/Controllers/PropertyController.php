@@ -49,7 +49,8 @@ class PropertyController extends Controller
     public function store(StorePropertyRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        $validated['status'] = PropertyStatus::tryFrom($request->input('status', '')) ?? PropertyStatus::default();
+        $validated['status'] = PropertyStatus::fromInput($validated['status'] ?? null)?->value
+            ?? PropertyStatus::default()->value;
 
         $property = $this->propertyService->createProperty($validated, auth()->id());
 
@@ -58,7 +59,7 @@ class PropertyController extends Controller
             foreach ($request->file('images') as $image) {
                 $path = $image->store("properties/{$property->id}", 'public');
                 $property->images()->create([
-                    'url'        => asset("storage/{$path}"),
+                    'image_url'  => asset("storage/{$path}"),
                     'is_primary' => $property->images()->count() === 0,
                 ]);
             }
@@ -100,7 +101,7 @@ class PropertyController extends Controller
                 ->with('error', 'Property not found.');
         }
 
-        $property->load(['images', 'amenities']);
+        $property->load(['images']);
 
         return view('host::properties.edit', compact('property'));
     }
@@ -125,7 +126,7 @@ class PropertyController extends Controller
             foreach ($request->file('images') as $image) {
                 $path = $image->store("properties/{$property->id}", 'public');
                 $property->images()->create([
-                    'url'        => asset("storage/{$path}"),
+                    'image_url'  => asset("storage/{$path}"),
                     'is_primary' => false,
                 ]);
             }

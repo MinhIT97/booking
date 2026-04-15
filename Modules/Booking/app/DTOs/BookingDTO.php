@@ -11,6 +11,7 @@ class BookingDTO extends BaseDTO
     public string $userId;
     public string $checkInDate;
     public string $checkOutDate;
+    public int $guests;
 
     public static function fromRequest(Request $request): self
     {
@@ -20,6 +21,7 @@ class BookingDTO extends BaseDTO
             'userId' => (string) $request->user()->id,
             'checkInDate' => $request->validated('check_in_date'),
             'checkOutDate' => $request->validated('check_out_date'),
+            'guests' => (int) $request->validated('guests'),
         ]);
     }
 }

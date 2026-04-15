@@ -5,6 +5,7 @@ namespace Modules\Admin\Services;
 use App\Services\BaseService;
 use Modules\Admin\Repositories\AdminPropertyRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Modules\Property\Enums\PropertyStatus;
 
 class AdminPropertyService extends BaseService
 {
@@ -26,7 +27,7 @@ class AdminPropertyService extends BaseService
      */
     public function approveProperty(string $id): bool
     {
-        return $this->repository->update($id, ['status' => 'approved']);
+        return $this->repository->update($id, ['status' => PropertyStatus::Active->value]);
     }
 
     /**
@@ -34,7 +35,7 @@ class AdminPropertyService extends BaseService
      */
     public function rejectProperty(string $id): bool
     {
-        return $this->repository->update($id, ['status' => 'rejected']);
+        return $this->repository->update($id, ['status' => PropertyStatus::Rejected->value]);
     }
 
     /**

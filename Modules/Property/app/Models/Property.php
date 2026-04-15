@@ -81,6 +81,7 @@ class Property extends Model implements Transformable
             return match ($this->status) {
                 PropertyStatus::Active => 'bg-green-500',
                 PropertyStatus::Draft  => 'bg-amber-400',
+                PropertyStatus::Rejected => 'bg-red-500',
                 default                => 'bg-gray-400',
             };
         });
@@ -90,6 +91,13 @@ class Property extends Model implements Transformable
     {
         return Attribute::get(function () {
             return $this->status?->label() ?? 'Draft';
+        });
+    }
+
+    protected function statusKey(): Attribute
+    {
+        return Attribute::get(function () {
+            return $this->status?->key() ?? 'draft';
         });
     }
 }
