@@ -7,6 +7,7 @@ use Modules\Property\Repositories\PropertyRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Property\Enums\PropertyStatus;
 
 class PropertyService extends BaseService
 {
@@ -69,7 +70,11 @@ class PropertyService extends BaseService
             $query->where('type', $filters['type']);
         }
         if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
+            $status = PropertyStatus::fromInput($filters['status']);
+
+            if ($status) {
+                $query->where('status', $status->value);
+            }
         }
 
         return $query->with(['images', 'primaryImage'])->withCount('bookings')->orderByDesc('created_at')->paginate(9);

@@ -15,7 +15,7 @@
     </div>
     <div class="stat-card">
         <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Active Now</p>
-        <p class="text-3xl font-extrabold text-emerald-600">{{ $users->where('status', 'active')->count() }}</p>
+        <p class="text-3xl font-extrabold text-emerald-600">{{ $users->where('status_key', 'active')->count() }}</p>
     </div>
 </div>
 
@@ -83,10 +83,10 @@
                                 'blocked' => 'bg-red-100 text-red-600',
                                 'inactive'=> 'bg-gray-100 text-gray-600',
                             ];
-                            $color = $statusColors[$user->status] ?? 'bg-gray-100 text-gray-600';
+                            $color = $statusColors[$user->status_key] ?? 'bg-gray-100 text-gray-600';
                         @endphp
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $color }}">
-                            {{ ucfirst($user->status) }}
+                            {{ $user->status_label }}
                         </span>
                     </td>
                     <td class="px-6 py-3 text-xs text-gray-400">
@@ -94,7 +94,7 @@
                     </td>
                     <td class="px-6 py-3 text-right">
                         <div class="flex items-center justify-end gap-1.5">
-                            @if($user->status === 'pending')
+                            @if($user->status_key === 'pending')
                                 <form action="{{ route('admin.users.approve', $user->id) }}" method="POST">
                                     @csrf
                                     <button type="submit" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 font-bold text-xs rounded-lg transition-colors border border-green-100/50">
@@ -104,7 +104,7 @@
                                 </form>
                             @endif
 
-                            @if($user->status === 'active')
+                            @if($user->status_key === 'active')
                                 <form action="{{ route('admin.users.block', $user->id) }}" method="POST" onsubmit="return confirm('Block this user?')">
                                     @csrf
                                     <button type="submit" class="inline-flex flex-shrink-0 items-center justify-center w-8 h-8 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Block User">
@@ -113,7 +113,7 @@
                                 </form>
                             @endif
 
-                            @if($user->status === 'blocked' || $user->status === 'inactive')
+                            @if(in_array($user->status_key, ['blocked', 'inactive'], true))
                                 <form action="{{ route('admin.users.approve', $user->id) }}" method="POST">
                                     @csrf
                                     <button type="submit" class="inline-flex flex-shrink-0 items-center justify-center w-8 h-8 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Activate User">

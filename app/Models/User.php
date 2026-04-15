@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\UserStatus;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -21,6 +23,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
+        'status',
         'phone',
         'avatar'
     ];
@@ -35,7 +38,18 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'status' => UserStatus::class,
         ];
+    }
+
+    protected function statusKey(): Attribute
+    {
+        return Attribute::get(fn () => $this->status?->key() ?? UserStatus::Active->key());
+    }
+
+    protected function statusLabel(): Attribute
+    {
+        return Attribute::get(fn () => $this->status?->label() ?? UserStatus::Active->label());
     }
 
     public function role()

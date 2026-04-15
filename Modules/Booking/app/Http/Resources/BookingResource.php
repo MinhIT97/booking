@@ -16,7 +16,9 @@ class BookingResource extends JsonResource
             'check_in_date' => $this->check_in_date,
             'check_out_date' => $this->check_out_date,
             'total_price' => (float) $this->total_price,
-            'status' => $this->status,
+            'status' => $this->status?->value ?? $this->status,
+            'status_key' => $this->status_key,
+            'status_label' => $this->status_label,
             // Eagerly loaded property relationship nested resource mapping
             'property' => $this->whenLoaded('property'),
             'created_at' => $this->created_at,

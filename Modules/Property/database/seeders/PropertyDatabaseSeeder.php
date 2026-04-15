@@ -7,6 +7,7 @@ use Modules\Property\Models\Property;
 use App\Models\User;
 use App\Models\Role;
 use Illuminate\Support\Str;
+use Modules\Property\Enums\PropertyStatus;
 
 class PropertyDatabaseSeeder extends Seeder
 {
@@ -38,7 +39,7 @@ class PropertyDatabaseSeeder extends Seeder
                 'address' => 'Beachside 123',
                 'city' => 'Da Nang',
                 'country' => 'Vietnam',
-                'status' => 'approved',
+                'status' => PropertyStatus::Active->value,
                 'average_rating' => 4.9,
                 'reviews_count' => 128
             ],
@@ -53,7 +54,7 @@ class PropertyDatabaseSeeder extends Seeder
                 'address' => 'Mountain Way 45',
                 'city' => 'Da Lat',
                 'country' => 'Vietnam',
-                'status' => 'approved',
+                'status' => PropertyStatus::Active->value,
                 'average_rating' => 4.7,
                 'reviews_count' => 85
             ],
@@ -68,7 +69,7 @@ class PropertyDatabaseSeeder extends Seeder
                 'address' => 'City Center 88',
                 'city' => 'Ho Chi Minh City',
                 'country' => 'Vietnam',
-                'status' => 'approved',
+                'status' => PropertyStatus::Active->value,
                 'average_rating' => 4.85,
                 'reviews_count' => 210
             ],
@@ -83,7 +84,7 @@ class PropertyDatabaseSeeder extends Seeder
                 'address' => 'Green Valley 12',
                 'city' => 'Hoi An',
                 'country' => 'Vietnam',
-                'status' => 'approved',
+                'status' => PropertyStatus::Active->value,
                 'average_rating' => 4.95,
                 'reviews_count' => 42
             ]

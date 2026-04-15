@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Repositories;
 
+use App\Enums\UserStatus;
 use App\Models\User;
 use App\Models\Role;
 use App\Repositories\BaseRepository;
@@ -32,7 +33,11 @@ class AdminUserRepository extends BaseRepository implements AdminUserRepositoryI
         }
 
         if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
+            $status = UserStatus::fromInput($filters['status']);
+
+            if ($status) {
+                $query->where('status', $status->value);
+            }
         }
 
         if (!empty($filters['search'])) {

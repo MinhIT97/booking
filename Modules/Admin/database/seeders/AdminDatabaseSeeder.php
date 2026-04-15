@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Database\Seeders;
 
+use App\Enums\UserStatus;
 use Illuminate\Database\Seeder;
 
 class AdminDatabaseSeeder extends Seeder
@@ -27,7 +28,7 @@ class AdminDatabaseSeeder extends Seeder
                 'name' => 'System Admin',
                 'password' => \Illuminate\Support\Facades\Hash::make('password'),
                 'role_id' => $adminRole->id,
-                'status' => 'active',
+                'status' => UserStatus::Active->value,
             ]
         );
 
@@ -38,7 +39,7 @@ class AdminDatabaseSeeder extends Seeder
                 'name' => 'Sample Host',
                 'password' => \Illuminate\Support\Facades\Hash::make('password'),
                 'role_id' => $hostRole->id,
-                'status' => 'active',
+                'status' => UserStatus::Active->value,
             ]
         );
 
@@ -49,23 +50,23 @@ class AdminDatabaseSeeder extends Seeder
                 'name' => 'Regular User',
                 'password' => \Illuminate\Support\Facades\Hash::make('password'),
                 'role_id' => $userRole->id,
-                'status' => 'active',
+                'status' => UserStatus::Active->value,
             ]
         );
 
         // Seed some more for pagination and status testing
         for ($i = 1; $i <= 10; $i++) {
-            $status = 'active';
-            if ($i == 1) $status = 'pending';
-            if ($i == 2) $status = 'blocked';
-            if ($i % 4 == 0) $status = 'inactive';
+            $status = UserStatus::Active;
+            if ($i == 1) $status = UserStatus::Pending;
+            if ($i == 2) $status = UserStatus::Blocked;
+            if ($i % 4 == 0) $status = UserStatus::Inactive;
 
             \App\Models\User::create([
                 'name' => "User $i",
                 'email' => "user$i@example.com",
                 'password' => \Illuminate\Support\Facades\Hash::make('password'),
                 'role_id' => $i % 3 == 0 ? $hostRole->id : $userRole->id,
-                'status' => $status,
+                'status' => $status->value,
             ]);
         }
     }

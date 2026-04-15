@@ -2,6 +2,7 @@
 
 namespace Modules\Auth\Services;
 
+use App\Enums\UserStatus;
 use App\Services\BaseService;
 use Exception;
 use Illuminate\Support\Facades\Auth;
@@ -29,6 +30,7 @@ class AuthService extends BaseService
                 'email' => $dto->email,
                 'password' => Hash::make($dto->password),
                 'role_id' => $userRole ? $userRole->id : null,
+                'status' => UserStatus::Active->value,
             ]);
         });
     }

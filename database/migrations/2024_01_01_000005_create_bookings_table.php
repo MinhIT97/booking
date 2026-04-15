@@ -14,9 +14,10 @@ return new class extends Migration
             $table->uuid('user_id')->index();
             $table->date('check_in_date');
             $table->date('check_out_date');
-            $table->integer('guests');
+            $table->unsignedInteger('guests');
             $table->decimal('total_price', 10, 2);
-            $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending')->index();
+            // 1: pending, 2: confirmed, 3: cancelled, 4: completed
+            $table->tinyInteger('status')->default(1)->index();
             $table->timestamps();
             $table->softDeletes();
 

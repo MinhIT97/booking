@@ -23,7 +23,7 @@
                         <img src="{{ $booking->property->primaryImage->url ?? 'https://ui-avatars.com/api/?name=Trip' }}" class="w-full h-full object-cover">
                         <div class="absolute top-4 left-4">
                             <span class="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[12px] font-bold shadow-sm">
-                                {{ ucfirst($booking->status) }}
+                                {{ $booking->status_label }}
                             </span>
                         </div>
                     </div>

@@ -43,8 +43,8 @@
             class="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand text-gray-700 bg-white">
             <option value="">All status</option>
             <option value="active" {{ request('status') === 'active'   ? 'selected' : '' }}>Active</option>
-            <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
             <option value="draft" {{ request('status') === 'draft'    ? 'selected' : '' }}>Draft</option>
+            <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
         </select>
 
         <button type="submit"

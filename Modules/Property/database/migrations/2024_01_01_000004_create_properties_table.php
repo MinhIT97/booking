@@ -16,17 +16,18 @@ return new class extends Migration
             $table->decimal('price_per_night', 10, 2);
             $table->unsignedInteger('reviews_count')->default(0);
             $table->decimal('average_rating', 3, 2)->default(0.00);
-            $table->integer('max_guests');
-            $table->integer('bedrooms');
-            $table->integer('beds');
-            $table->integer('bathrooms');
+            $table->unsignedInteger('max_guests');
+            $table->unsignedInteger('bedrooms');
+            $table->unsignedInteger('beds');
+            $table->unsignedInteger('bathrooms');
             $table->string('address');
             $table->string('city')->index();
             $table->string('state')->nullable();
             $table->string('country');
             $table->decimal('latitude', 10, 8)->nullable();
             $table->decimal('longitude', 11, 8)->nullable();
-            $table->tinyInteger('status'); //pending 2 approved 3 rejected 4
+            // 1: draft, 2: active, 3: rejected
+            $table->tinyInteger('status')->default(1)->index();
             $table->timestamps();
             $table->softDeletes();
 

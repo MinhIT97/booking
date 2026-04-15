@@ -100,10 +100,10 @@
                             @foreach ($property->bookings as $booking)
                                 @php
                                     $color = match ($booking->status) {
-                                        'confirmed' => 'bg-green-100 text-green-700',
-                                        'pending'   => 'bg-amber-100 text-amber-700',
-                                        'cancelled' => 'bg-red-100 text-red-600',
-                                        'completed' => 'bg-blue-100 text-blue-700',
+                                        \Modules\Booking\Enums\BookingStatus::Confirmed => 'bg-green-100 text-green-700',
+                                        \Modules\Booking\Enums\BookingStatus::Pending => 'bg-amber-100 text-amber-700',
+                                        \Modules\Booking\Enums\BookingStatus::Cancelled => 'bg-red-100 text-red-600',
+                                        \Modules\Booking\Enums\BookingStatus::Completed => 'bg-blue-100 text-blue-700',
                                         default     => 'bg-gray-100 text-gray-600',
                                     };
                                 @endphp
@@ -117,7 +117,7 @@
                                     </td>
                                     <td class="px-6 py-3">
                                         <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold {{ $color }}">
-                                            {{ ucfirst($booking->status) }}
+                                            {{ $booking->status_label }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-3 text-right font-semibold">

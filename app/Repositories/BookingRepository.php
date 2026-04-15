@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use Modules\Booking\Enums\BookingStatus;
 use Modules\Booking\Models\Booking;
 use Illuminate\Support\Collection;
 
@@ -25,7 +26,7 @@ class BookingRepository
     public function isPropertyAvailable(string $propertyId, string $checkIn, string $checkOut): bool
     {
         return !Booking::where('property_id', $propertyId)
-            ->whereIn('status', ['pending', 'confirmed'])
+            ->whereIn('status', [BookingStatus::Pending->value, BookingStatus::Confirmed->value])
             ->where(function ($query) use ($checkIn, $checkOut) {
                 $query->whereBetween('check_in_date', [$checkIn, $checkOut])
                       ->orWhereBetween('check_out_date', [$checkIn, $checkOut])
@@ -41,8 +42,12 @@ class BookingRepository
         return Booking::create($data);
     }
 
-    public function updateStatus(Booking $booking, string $status): bool
+    public function updateStatus(Booking $booking, string|int $status): bool
     {
-        return $booking->update(['status' => $status]);
+        $bookingStatus = BookingStatus::fromInput($status);
+
+        return $bookingStatus
+            ? $booking->update(['status' => $bookingStatus->value])
+            : false;
     }
 }

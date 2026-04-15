@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Enums\UserStatus;
 use App\Services\BaseService;
 use Modules\Admin\Repositories\AdminUserRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -32,8 +33,11 @@ class AdminUserService extends BaseService
             return false;
         }
 
-        $newStatus = $user->status === 'active' ? 'inactive' : 'active';
-        return $this->repository->update($userId, ['status' => $newStatus]);
+        $newStatus = $user->status === UserStatus::Active
+            ? UserStatus::Inactive
+            : UserStatus::Active;
+
+        return $this->repository->update($userId, ['status' => $newStatus->value]);
     }
 
     /**
@@ -41,7 +45,7 @@ class AdminUserService extends BaseService
      */
     public function approveUser(string $userId): bool
     {
-        return $this->repository->update($userId, ['status' => 'active']);
+        return $this->repository->update($userId, ['status' => UserStatus::Active->value]);
     }
 
     /**
@@ -49,6 +53,6 @@ class AdminUserService extends BaseService
      */
     public function blockUser(string $userId): bool
     {
-        return $this->repository->update($userId, ['status' => 'blocked']);
+        return $this->repository->update($userId, ['status' => UserStatus::Blocked->value]);
     }
 }

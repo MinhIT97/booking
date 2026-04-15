@@ -6,6 +6,7 @@ use App\Services\BaseService;
 use Modules\Booking\Repositories\BookingRepositoryInterface;
 use Modules\Property\Repositories\PropertyRepositoryInterface;
 use Modules\Booking\DTOs\BookingDTO;
+use Modules\Booking\Enums\BookingStatus;
 use Exception;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -60,7 +61,7 @@ class BookingService extends BaseService
                 'check_out_date' => $dto->checkOutDate,
                 'guests' => $dto->guests,
                 'total_price' => $totalPrice,
-                'status' => 'pending'
+                'status' => BookingStatus::Pending->value
             ]);
 
             return $booking->load(['property', 'user']);
@@ -83,16 +84,22 @@ class BookingService extends BaseService
         ]));
     }
 
-    public function updateBookingStatus(string $id, string $status): ?Model
+    public function updateBookingStatus(string $id, string|int $status): ?Model
     {
         return $this->executeInTransaction(function () use ($id, $status) {
+            $bookingStatus = BookingStatus::fromInput($status);
+
+            if (!$bookingStatus) {
+                throw new Exception('Invalid booking status.');
+            }
+
             $booking = $this->bookingRepository->with(['property', 'user'])->find($id);
 
             if (!$booking) {
                 return null;
             }
 
-            $this->bookingRepository->update($id, ['status' => $status]);
+            $this->bookingRepository->update($id, ['status' => $bookingStatus->value]);
 
             return $booking->refresh()->load(['property', 'user']);
         });
@@ -108,21 +115,21 @@ class BookingService extends BaseService
     public function countActiveByHost(string $hostId): int
     {
         return $this->bookingRepository->newHostQuery($hostId)
-            ->whereIn('status', ['confirmed', 'completed'])
+            ->whereIn('status', [BookingStatus::Confirmed->value, BookingStatus::Completed->value])
             ->count();
     }
 
     public function countPendingByHost(string $hostId): int
     {
         return $this->bookingRepository->newHostQuery($hostId)
-            ->where('status', 'pending')
+            ->where('status', BookingStatus::Pending->value)
             ->count();
     }
 
     public function revenueThisMonthByHost(string $hostId): float
     {
         return (float) $this->bookingRepository->newHostQuery($hostId)
-            ->whereIn('status', ['confirmed', 'completed'])
+            ->whereIn('status', [BookingStatus::Confirmed->value, BookingStatus::Completed->value])
             ->whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
             ->sum('total_price');
@@ -133,7 +140,7 @@ class BookingService extends BaseService
         $thisMonth = $this->revenueThisMonthByHost($hostId);
         
         $lastMonth = (float) $this->bookingRepository->newHostQuery($hostId)
-            ->whereIn('status', ['confirmed', 'completed'])
+            ->whereIn('status', [BookingStatus::Confirmed->value, BookingStatus::Completed->value])
             ->whereMonth('created_at', now()->subMonth()->month)
             ->whereYear('created_at', now()->subMonth()->year)
             ->sum('total_price');

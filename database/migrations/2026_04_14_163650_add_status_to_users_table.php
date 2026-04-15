@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('status')->default('active')->after('role_id');
+            // 1: pending, 2: active, 3: inactive, 4: blocked
+            $table->tinyInteger('status')->default(2)->after('role_id')->index();
         });
     }
 

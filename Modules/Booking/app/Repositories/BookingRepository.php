@@ -3,6 +3,7 @@
 namespace Modules\Booking\Repositories;
 
 use App\Repositories\BaseRepository;
+use Modules\Booking\Enums\BookingStatus;
 use Modules\Booking\Models\Booking;
 use Illuminate\Support\Facades\Cache;
 
@@ -16,7 +17,7 @@ class BookingRepository extends BaseRepository implements BookingRepositoryInter
     public function checkOverlap(string $propertyId, string $checkIn, string $checkOut): bool
     {
         return $this->model->where('property_id', $propertyId)
-            ->where('status', 'confirmed') // CRITICAL: Only confirmed bookings block dates!
+            ->where('status', BookingStatus::Confirmed->value)
             ->where(function ($query) use ($checkIn, $checkOut) {
                 $query->whereBetween('check_in_date', [$checkIn, $checkOut])
                       ->orWhereBetween('check_out_date', [$checkIn, $checkOut])
@@ -39,7 +40,7 @@ class BookingRepository extends BaseRepository implements BookingRepositoryInter
         return Cache::tags($this->getCacheTags())->remember($key, $this->cacheTtl, function () use ($propertyId, $startDate, $endDate) {
             return $this->newQuery()
                 ->where('property_id', $propertyId)
-                ->where('status', 'confirmed') // Only confirmed bookings impact actual availability calendar!
+                ->where('status', BookingStatus::Confirmed->value)
                 ->where(function ($query) use ($startDate, $endDate) {
                     $query->whereBetween('check_in_date', [$startDate, $endDate])
                           ->orWhereBetween('check_out_date', [$startDate, $endDate])

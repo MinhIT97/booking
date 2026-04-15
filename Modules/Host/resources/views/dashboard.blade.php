@@ -138,10 +138,10 @@
                                             'cancelled' => 'bg-red-100 text-red-600',
                                             'completed' => 'bg-blue-100 text-blue-700',
                                         ];
-                                        $color = $statusColors[$booking->status] ?? 'bg-gray-100 text-gray-600';
+                                        $color = $statusColors[$booking->status_key] ?? 'bg-gray-100 text-gray-600';
                                     @endphp
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $color }}">
-                                        {{ ucfirst($booking->status) }}
+                                        {{ $booking->status_label }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-right font-semibold text-gray-900">

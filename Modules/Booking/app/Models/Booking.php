@@ -3,9 +3,11 @@
 namespace Modules\Booking\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Booking\Enums\BookingStatus;
 
 class Booking extends Model
 {
@@ -31,7 +33,18 @@ class Booking extends Model
         'check_in_date' => 'date',
         'check_out_date' => 'date',
         'total_price' => 'decimal:2',
+        'status' => BookingStatus::class,
     ];
+
+    protected function statusKey(): Attribute
+    {
+        return Attribute::get(fn () => $this->status?->key() ?? BookingStatus::Pending->key());
+    }
+
+    protected function statusLabel(): Attribute
+    {
+        return Attribute::get(fn () => $this->status?->label() ?? BookingStatus::Pending->label());
+    }
 
     public function property()
     {
