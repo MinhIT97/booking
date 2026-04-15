@@ -21,7 +21,7 @@
 
 {{-- FILTERS --}}
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6">
-    <form action="{{ route('admin.users.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <form action="{{ route('admin.users.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4">
         <div class="md:col-span-2 relative">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search users…" 
                    class="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-all">
@@ -32,6 +32,14 @@
                 <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                 <option value="host" {{ request('role') == 'host' ? 'selected' : '' }}>Host</option>
                 <option value="user" {{ request('role') == 'user' ? 'selected' : '' }}>User</option>
+            </select>
+        </div>
+        <div>
+            <select name="status" onchange="this.form.submit()" class="w-full py-2.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-all appearance-none cursor-pointer">
+                <option value="">All Statuses</option>
+                @foreach(['pending' => 'Pending', 'active' => 'Active', 'inactive' => 'Inactive', 'blocked' => 'Blocked'] as $value => $label)
+                    <option value="{{ $value }}" {{ request('status') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
             </select>
         </div>
         <div class="flex gap-2">
@@ -122,8 +130,11 @@
                                 </form>
                             @endif
                             
-                            <a href="#" class="inline-flex flex-shrink-0 items-center justify-center w-8 h-8 text-gray-400 hover:text-brand hover:bg-brand/10 rounded-lg transition-colors">
+                            <a href="{{ route('admin.users.show', $user->id) }}" class="inline-flex flex-shrink-0 items-center justify-center w-8 h-8 text-gray-400 hover:text-brand hover:bg-brand/10 rounded-lg transition-colors" title="View User">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            </a>
+                            <a href="{{ route('admin.users.edit', $user->id) }}" class="inline-flex flex-shrink-0 items-center justify-center w-8 h-8 text-gray-400 hover:text-brand hover:bg-brand/10 rounded-lg transition-colors" title="Edit User">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </a>
                         </div>
                     </td>

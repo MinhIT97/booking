@@ -69,7 +69,7 @@
                                 @endif
                             </div>
                             <div class="min-w-0">
-                                <p class="font-bold text-gray-900 truncate">{{ $property->title }}</p>
+                                <a href="{{ route('admin.properties.show', $property->id) }}" class="font-bold text-gray-900 truncate hover:text-brand block">{{ $property->title }}</a>
                                 <p class="text-xs text-gray-400 truncate">{{ $property->city }}, {{ $property->country }}</p>
                             </div>
                         </div>
@@ -105,6 +105,10 @@
                     </td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex items-center justify-end gap-2">
+                            <a href="{{ route('admin.properties.show', $property->id) }}" class="btn-outline px-3 py-1.5 text-[11px]">
+                                View
+                            </a>
+
                             @if($property->status_key === 'draft')
                                 <form action="{{ route('admin.properties.approve', $property->id) }}" method="POST">
                                     @csrf

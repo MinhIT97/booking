@@ -6,22 +6,17 @@ use App\Repositories\BaseRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Property\Enums\PropertyStatus;
+use Modules\Booking\Enums\BookingStatus;
 
-interface AdminPropertyRepositoryInterface extends BaseRepositoryInterface
+interface AdminBookingRepositoryInterface extends BaseRepositoryInterface
 {
-    /**
-     * Get paginated properties for administration.
-     *
-     * @param array $filters
-     * @param int $perPage
-     * @return LengthAwarePaginator
-     */
     public function getPaginatedWithFilters(array $filters = [], int $perPage = 10): LengthAwarePaginator;
 
     public function findWithRelations(string $id): ?Model;
 
-    public function countByStatus(PropertyStatus $status): int;
+    public function countByStatus(BookingStatus $status): int;
 
     public function recent(int $limit = 8): Collection;
+
+    public function revenueTotal(): float;
 }

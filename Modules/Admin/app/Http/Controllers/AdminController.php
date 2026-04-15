@@ -2,55 +2,53 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Enums\UserStatus;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use Modules\Admin\Services\AdminBookingService;
+use Modules\Admin\Services\AdminPropertyService;
+use Modules\Admin\Services\AdminUserService;
+use Modules\Booking\Enums\BookingStatus;
+use Modules\Property\Enums\PropertyStatus;
 
 class AdminController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct(
+        protected AdminUserService $userService,
+        protected AdminPropertyService $propertyService,
+        protected AdminBookingService $bookingService,
+    ) {}
+
     public function index()
     {
-        return view('admin::index');
+        $stats = $this->stats();
+
+        $recentUsers = $this->userService->recent();
+        $recentProperties = $this->propertyService->recent();
+        $recentBookings = $this->bookingService->recent();
+
+        return view('admin::dashboard', compact('stats', 'recentUsers', 'recentProperties', 'recentBookings'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function settings()
     {
-        return view('admin::create');
+        return view('admin::settings');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request) {}
-
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
+    public function summary()
     {
-        return view('admin::show');
+        return response()->json(['data' => $this->stats()]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
+    private function stats(): array
     {
-        return view('admin::edit');
+        return [
+            'active_users' => $this->userService->countByStatus(UserStatus::Active),
+            'hosts' => $this->userService->countByRole('host'),
+            'draft_properties' => $this->propertyService->countByStatus(PropertyStatus::Draft),
+            'active_properties' => $this->propertyService->countByStatus(PropertyStatus::Active),
+            'pending_bookings' => $this->bookingService->countByStatus(BookingStatus::Pending),
+            'confirmed_bookings' => $this->bookingService->countByStatus(BookingStatus::Confirmed),
+            'revenue_total' => $this->bookingService->revenueTotal(),
+        ];
     }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id) {}
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id) {}
 }

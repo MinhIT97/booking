@@ -2,29 +2,26 @@
 
 namespace Modules\Admin\Repositories;
 
-use Modules\Property\Models\Property;
-use Modules\Property\Enums\PropertyStatus;
 use App\Repositories\BaseRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Booking\Enums\BookingStatus;
+use Modules\Booking\Models\Booking;
 
-class AdminPropertyRepository extends BaseRepository implements AdminPropertyRepositoryInterface
+class AdminBookingRepository extends BaseRepository implements AdminBookingRepositoryInterface
 {
-    public function __construct(Property $model)
+    public function __construct(Booking $model)
     {
         parent::__construct($model);
     }
 
-    /**
-     * Get paginated properties with filtering.
-     */
     public function getPaginatedWithFilters(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
-        $query = $this->newQuery()->with(['host', 'primaryImage']);
+        $query = $this->newQuery()->with(['user', 'property.host']);
 
         if (!empty($filters['status'])) {
-            $status = PropertyStatus::fromInput($filters['status']);
+            $status = BookingStatus::fromInput($filters['status']);
 
             if ($status) {
                 $query->where('status', $status->value);
@@ -34,11 +31,12 @@ class AdminPropertyRepository extends BaseRepository implements AdminPropertyRep
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('city', 'like', "%{$search}%")
-                  ->orWhereHas('host', function($h) use ($search) {
-                      $h->where('name', 'like', "%{$search}%");
-                  });
+                $q->whereHas('user', fn ($user) => $user
+                    ->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%"))
+                    ->orWhereHas('property', fn ($property) => $property
+                        ->where('title', 'like', "%{$search}%")
+                        ->orWhere('city', 'like', "%{$search}%"));
             });
         }
 
@@ -48,12 +46,11 @@ class AdminPropertyRepository extends BaseRepository implements AdminPropertyRep
     public function findWithRelations(string $id): ?Model
     {
         return $this->newQuery()
-            ->with(['host.role', 'images', 'primaryImage', 'bookings.user'])
-            ->withCount('bookings')
+            ->with(['user.role', 'property.host', 'property.primaryImage'])
             ->find($id);
     }
 
-    public function countByStatus(PropertyStatus $status): int
+    public function countByStatus(BookingStatus $status): int
     {
         return $this->newQuery()->where('status', $status->value)->count();
     }
@@ -61,9 +58,16 @@ class AdminPropertyRepository extends BaseRepository implements AdminPropertyRep
     public function recent(int $limit = 8): Collection
     {
         return $this->newQuery()
-            ->with(['host', 'primaryImage'])
+            ->with(['user', 'property'])
             ->latest()
             ->limit($limit)
             ->get();
+    }
+
+    public function revenueTotal(): float
+    {
+        return (float) $this->newQuery()
+            ->whereIn('status', [BookingStatus::Confirmed->value, BookingStatus::Completed->value])
+            ->sum('total_price');
     }
 }

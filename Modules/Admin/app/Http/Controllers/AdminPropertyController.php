@@ -21,6 +21,17 @@ class AdminPropertyController extends Controller
         return view('admin::admin.properties.index', compact('properties'));
     }
 
+    public function show(string $id)
+    {
+        $property = $this->propertyService->getProperty($id);
+
+        if (!$property) {
+            return redirect()->route('admin.properties.index')->with('error', 'Property not found.');
+        }
+
+        return view('admin::admin.properties.show', compact('property'));
+    }
+
     /**
      * Approve a property.
      */

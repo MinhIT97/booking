@@ -2,9 +2,11 @@
 
 @php
 $navItems = [
-['route' => 'admin.users.index', 'icon' => 'users', 'label' => 'User Management'],
-['route' => 'admin.properties.index', 'icon' => 'building', 'label' => 'Properties'],
-['route' => 'admin.users.index', 'icon' => 'cog', 'label' => 'Settings'],
+['route' => 'admin.dashboard', 'active' => 'admin.dashboard', 'icon' => 'home', 'label' => 'Dashboard'],
+['route' => 'admin.users.index', 'active' => 'admin.users.*', 'icon' => 'users', 'label' => 'User Management'],
+['route' => 'admin.properties.index', 'active' => 'admin.properties.*', 'icon' => 'building', 'label' => 'Properties'],
+['route' => 'admin.bookings.index', 'active' => 'admin.bookings.*', 'icon' => 'calendar', 'label' => 'Bookings'],
+['route' => 'admin.settings.index', 'active' => 'admin.settings.*', 'icon' => 'cog', 'label' => 'Settings'],
 ];
 @endphp
 
@@ -37,7 +39,7 @@ $navItems = [
 
         @foreach ($navItems as $item)
         @php
-        $isActive = request()->routeIs($item['route']) || request()->routeIs($item['route'] . '.*');
+        $isActive = request()->routeIs($item['active']);
         $routeExists = Route::has($item['route']);
         $url = $routeExists ? route($item['route']) : '#';
         @endphp
@@ -48,6 +50,11 @@ $navItems = [
 
             {{-- Icons --}}
             @switch($item['icon'])
+            @case('home')
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l9-9 9 9M5 10v10h14V10" />
+            </svg>
+            @break
             @case('users')
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -56,6 +63,11 @@ $navItems = [
             @case('building')
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            @break
+            @case('calendar')
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M5 11h14M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             @break
             @case('cog')

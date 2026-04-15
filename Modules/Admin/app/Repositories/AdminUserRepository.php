@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\Role;
 use App\Repositories\BaseRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 
 class AdminUserRepository extends BaseRepository implements AdminUserRepositoryInterface
 {
@@ -49,5 +51,33 @@ class AdminUserRepository extends BaseRepository implements AdminUserRepositoryI
         }
 
         return $query->latest()->paginate($perPage);
+    }
+
+    public function findWithRelations(string $id): ?Model
+    {
+        return $this->newQuery()
+            ->with(['role', 'properties.primaryImage', 'bookings.property'])
+            ->find($id);
+    }
+
+    public function countByStatus(UserStatus $status): int
+    {
+        return $this->newQuery()->where('status', $status->value)->count();
+    }
+
+    public function countByRole(string $role): int
+    {
+        return $this->newQuery()
+            ->whereHas('role', fn ($query) => $query->where('name', $role))
+            ->count();
+    }
+
+    public function recent(int $limit = 8): Collection
+    {
+        return $this->newQuery()
+            ->with('role')
+            ->latest()
+            ->limit($limit)
+            ->get();
     }
 }
