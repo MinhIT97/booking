@@ -14,10 +14,8 @@ use Illuminate\Validation\ValidationException;
 
 class AdminUserService extends BaseService
 {
-
     public function __construct(protected AdminUserRepositoryInterface $repository)
     {
-       $this->repository = $repository;
     }
 
     /**
@@ -25,12 +23,40 @@ class AdminUserService extends BaseService
      */
     public function getUserList(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
-        return $this->repository->getPaginatedWithFilters($filters, $perPage);
+        return $this->repository
+            ->with('role')
+            ->scopeQuery(function($query) use ($filters) {
+                if (!empty($filters['role'])) {
+                    $query->whereHas('role', function($q) use ($filters) {
+                        $q->where('name', $filters['role']);
+                    });
+                }
+
+                if (!empty($filters['status'])) {
+                    $status = UserStatus::fromInput($filters['status']);
+                    if ($status) {
+                        $query->where('status', $status->value);
+                    }
+                }
+
+                if (!empty($filters['search'])) {
+                    $search = $filters['search'];
+                    $query->where(function($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                          ->orWhere('email', 'like', "%{$search}%");
+                    });
+                }
+
+                return $query->latest();
+            })
+            ->paginate($perPage);
     }
 
     public function getUser(string $userId): ?Model
     {
-        return $this->repository->findWithRelations($userId);
+        return $this->repository
+            ->with(['role', 'properties.primaryImage', 'bookings.property'])
+            ->find($userId);
     }
 
     public function updateUser(string $userId, array $data): bool
@@ -63,7 +89,8 @@ class AdminUserService extends BaseService
                 unset($data['password']);
             }
 
-            return $this->repository->update($userId, $data);
+            $this->repository->update($data, $userId);
+            return true;
         });
     }
 
@@ -81,7 +108,8 @@ class AdminUserService extends BaseService
             ? UserStatus::Inactive
             : UserStatus::Active;
 
-        return $this->repository->update($userId, ['status' => $newStatus->value]);
+        $this->repository->update(['status' => $newStatus->value], $userId);
+        return true;
     }
 
     /**
@@ -89,7 +117,8 @@ class AdminUserService extends BaseService
      */
     public function approveUser(string $userId): bool
     {
-        return $this->repository->update($userId, ['status' => UserStatus::Active->value]);
+        $this->repository->update(['status' => UserStatus::Active->value], $userId);
+        return true;
     }
 
     /**
@@ -97,7 +126,8 @@ class AdminUserService extends BaseService
      */
     public function blockUser(string $userId): bool
     {
-        return $this->repository->update($userId, ['status' => UserStatus::Blocked->value]);
+        $this->repository->update(['status' => UserStatus::Blocked->value], $userId);
+        return true;
     }
 
     public function deleteUser(string $userId, ?string $currentUserId = null): bool
@@ -111,16 +141,23 @@ class AdminUserService extends BaseService
 
     public function countByStatus(UserStatus $status): int
     {
-        return $this->repository->countByStatus($status);
+        return $this->repository->findWhere(['status' => $status->value])->count();
     }
 
     public function countByRole(string $role): int
     {
-        return $this->repository->countByRole($role);
+        return $this->repository->scopeQuery(function($q) use ($role) {
+            return $q->whereHas('role', fn ($query) => $query->where('name', $role));
+        })->count();
     }
 
     public function recent(int $limit = 8): Collection
     {
-        return $this->repository->recent($limit);
+        return $this->repository
+            ->with('role')
+            ->scopeQuery(function($q) use ($limit) {
+                return $q->latest()->limit($limit);
+            })
+            ->get();
     }
 }

@@ -3,67 +3,17 @@
 namespace Modules\Admin\Repositories;
 
 use Modules\Property\Models\Property;
-use Modules\Property\Enums\PropertyStatus;
 use App\Repositories\BaseRepository;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
 
 class AdminPropertyRepository extends BaseRepository implements AdminPropertyRepositoryInterface
 {
-    public function __construct(Property $model)
-    {
-        parent::__construct($model);
-    }
-
     /**
-     * Get paginated properties with filtering.
+     * Specify Model class name
+     *
+     * @return string
      */
-    public function getPaginatedWithFilters(array $filters = [], int $perPage = 10): LengthAwarePaginator
+    public function model()
     {
-        $query = $this->newQuery()->with(['host', 'primaryImage']);
-
-        if (!empty($filters['status'])) {
-            $status = PropertyStatus::fromInput($filters['status']);
-
-            if ($status) {
-                $query->where('status', $status->value);
-            }
-        }
-
-        if (!empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('city', 'like', "%{$search}%")
-                  ->orWhereHas('host', function($h) use ($search) {
-                      $h->where('name', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        return $query->latest()->paginate($perPage);
-    }
-
-    public function findWithRelations(string $id): ?Model
-    {
-        return $this->newQuery()
-            ->with(['host.role', 'images', 'primaryImage', 'bookings.user'])
-            ->withCount('bookings')
-            ->find($id);
-    }
-
-    public function countByStatus(PropertyStatus $status): int
-    {
-        return $this->newQuery()->where('status', $status->value)->count();
-    }
-
-    public function recent(int $limit = 8): Collection
-    {
-        return $this->newQuery()
-            ->with(['host', 'primaryImage'])
-            ->latest()
-            ->limit($limit)
-            ->get();
+        return Property::class;
     }
 }

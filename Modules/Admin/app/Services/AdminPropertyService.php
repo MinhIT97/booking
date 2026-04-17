@@ -13,7 +13,6 @@ class AdminPropertyService extends BaseService
 {
     public function __construct(protected AdminPropertyRepositoryInterface $repository)
     {
-        $this->repository = $repository;
     }
 
     /**
@@ -21,12 +20,38 @@ class AdminPropertyService extends BaseService
      */
     public function getPropertyList(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
-        return $this->repository->getPaginatedWithFilters($filters, $perPage);
+        return $this->repository
+            ->with(['host', 'primaryImage'])
+            ->scopeQuery(function($query) use ($filters) {
+                if (!empty($filters['status'])) {
+                    $status = PropertyStatus::fromInput($filters['status']);
+                    if ($status) {
+                        $query->where('status', $status->value);
+                    }
+                }
+
+                if (!empty($filters['search'])) {
+                    $search = $filters['search'];
+                    $query->where(function ($q) use ($search) {
+                        $q->where('title', 'like', "%{$search}%")
+                          ->orWhere('city', 'like', "%{$search}%")
+                          ->orWhereHas('host', function($h) use ($search) {
+                              $h->where('name', 'like', "%{$search}%");
+                          });
+                    });
+                }
+
+                return $query->latest();
+            })
+            ->paginate($perPage);
     }
 
     public function getProperty(string $id): ?Model
     {
-        return $this->repository->findWithRelations($id);
+        return $this->repository
+            ->with(['host.role', 'images', 'primaryImage', 'bookings.user'])
+            ->withCount('bookings')
+            ->find($id);
     }
 
     /**
@@ -34,7 +59,8 @@ class AdminPropertyService extends BaseService
      */
     public function approveProperty(string $id): bool
     {
-        return $this->repository->update($id, ['status' => PropertyStatus::Active->value]);
+        $this->repository->update(['status' => PropertyStatus::Active->value], $id);
+        return true;
     }
 
     /**
@@ -42,7 +68,8 @@ class AdminPropertyService extends BaseService
      */
     public function rejectProperty(string $id): bool
     {
-        return $this->repository->update($id, ['status' => PropertyStatus::Rejected->value]);
+        $this->repository->update(['status' => PropertyStatus::Rejected->value], $id);
+        return true;
     }
 
     /**
@@ -55,11 +82,16 @@ class AdminPropertyService extends BaseService
 
     public function countByStatus(PropertyStatus $status): int
     {
-        return $this->repository->countByStatus($status);
+        return $this->repository->findWhere(['status' => $status->value])->count();
     }
 
     public function recent(int $limit = 8): Collection
     {
-        return $this->repository->recent($limit);
+        return $this->repository
+            ->with(['host', 'primaryImage'])
+            ->scopeQuery(function($q) use ($limit) {
+                return $q->latest()->limit($limit);
+            })
+            ->get();
     }
 }

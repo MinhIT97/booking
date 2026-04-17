@@ -8,15 +8,22 @@ use Modules\Property\Models\Property;
 class PropertyRepository extends BaseRepository implements PropertyRepositoryInterface
 {
     /**
-     * Automatically inject the native Model here.
+     * Specify Model class name
+     *
+     * @return string
      */
-    public function __construct(Property $model)
+    public function model()
     {
-        parent::__construct($model);
+        return Property::class;
     }
 
+    /**
+     * Return a builder scoped to a specific host_id.
+     * Note: In L5 Repository, we can use the model directly or better, push a criteria.
+     * For backward compatibility with existing service calls, we return the model query.
+     */
     public function newHostQuery(string $hostId)
     {
-        return $this->newQuery()->where('host_id', $hostId);
+        return $this->model->where('host_id', $hostId);
     }
 }

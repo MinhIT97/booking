@@ -8,15 +8,17 @@ use App\Repositories\BaseRepository;
 class UserRepository extends BaseRepository implements UserRepositoryInterface
 {
     /**
-     * Inject the foundational application User model into the base repository.
+     * Specify Model class name
+     *
+     * @return string
      */
-    public function __construct(User $model)
+    public function model()
     {
-        parent::__construct($model);
+        return User::class;
     }
 
     public function findByEmail(string $email)
     {
-        return $this->newQuery()->where('email', $email)->first();
+        return $this->findWhere(['email' => $email])->first();
     }
 }

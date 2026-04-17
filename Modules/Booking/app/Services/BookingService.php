@@ -75,7 +75,7 @@ class BookingService extends BaseService
 
     public function getUserBookings(string $userId)
     {
-        return $this->bookingRepository->with(['property', 'property.primaryImage'])->findBy(['user_id' => $userId]);
+        return $this->bookingRepository->with(['property', 'property.primaryImage'])->findWhere(['user_id' => $userId]);
     }
 
     public function bookProperty(array $data, string $userId): Booking
@@ -104,7 +104,7 @@ class BookingService extends BaseService
                 return null;
             }
 
-            $this->bookingRepository->update($id, ['status' => $bookingStatus->value]);
+            $this->bookingRepository->update(['status' => $bookingStatus->value], $id);
 
             return $booking->refresh()->load(['property', 'user']);
         });
@@ -119,36 +119,46 @@ class BookingService extends BaseService
 
     public function countActiveByHost(string $hostId): int
     {
-        return $this->bookingRepository->newHostQuery($hostId)
-            ->whereIn('status', [BookingStatus::Confirmed->value, BookingStatus::Completed->value])
-            ->count();
+        return $this->bookingRepository->scopeQuery(function($q) use ($hostId) {
+            return $q->whereHas('property', function ($query) use ($hostId) {
+                $query->where('host_id', $hostId);
+            })->whereIn('status', [BookingStatus::Confirmed->value, BookingStatus::Completed->value]);
+        })->count();
     }
 
     public function countPendingByHost(string $hostId): int
     {
-        return $this->bookingRepository->newHostQuery($hostId)
-            ->where('status', BookingStatus::Pending->value)
-            ->count();
+        return $this->bookingRepository->scopeQuery(function($q) use ($hostId) {
+            return $q->whereHas('property', function ($query) use ($hostId) {
+                $query->where('host_id', $hostId);
+            })->where('status', BookingStatus::Pending->value);
+        })->count();
     }
 
     public function revenueThisMonthByHost(string $hostId): float
     {
-        return (float) $this->bookingRepository->newHostQuery($hostId)
+        return (float) $this->bookingRepository->scopeQuery(function($q) use ($hostId) {
+            return $q->whereHas('property', function ($query) use ($hostId) {
+                $query->where('host_id', $hostId);
+            })
             ->whereIn('status', [BookingStatus::Confirmed->value, BookingStatus::Completed->value])
             ->whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->sum('total_price');
+            ->whereYear('created_at', now()->year);
+        })->sum('total_price');
     }
 
     public function revenueGrowthPercentByHost(string $hostId): int
     {
         $thisMonth = $this->revenueThisMonthByHost($hostId);
         
-        $lastMonth = (float) $this->bookingRepository->newHostQuery($hostId)
+        $lastMonth = (float) $this->bookingRepository->scopeQuery(function($q) use ($hostId) {
+            return $q->whereHas('property', function ($query) use ($hostId) {
+                $query->where('host_id', $hostId);
+            })
             ->whereIn('status', [BookingStatus::Confirmed->value, BookingStatus::Completed->value])
             ->whereMonth('created_at', now()->subMonth()->month)
-            ->whereYear('created_at', now()->subMonth()->year)
-            ->sum('total_price');
+            ->whereYear('created_at', now()->subMonth()->year);
+        })->sum('total_price');
 
         if ($lastMonth == 0) {
             return $thisMonth > 0 ? 100 : 0;
@@ -159,10 +169,15 @@ class BookingService extends BaseService
 
     public function recentByHost(string $hostId, int $limit = 8)
     {
-        return $this->bookingRepository->newHostQuery($hostId)
+        return $this->bookingRepository
             ->with(['user', 'property'])
-            ->orderByDesc('created_at')
-            ->limit($limit)
+            ->scopeQuery(function($q) use ($hostId, $limit) {
+                return $q->whereHas('property', function ($query) use ($hostId) {
+                    $query->where('host_id', $hostId);
+                })
+                ->orderByDesc('created_at')
+                ->limit($limit);
+            })
             ->get();
     }
 }
