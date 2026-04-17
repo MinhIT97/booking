@@ -13,13 +13,16 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Booking\Models\Booking;
 use Modules\Property\Models\Property;
+use Spatie\Sluggable\HasSlug;
+use Spatie\Sluggable\SlugOptions;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens, HasUuids, SoftDeletes;
+    use HasFactory, Notifiable, HasApiTokens, HasUuids, SoftDeletes, HasSlug;
 
     protected $fillable = [
         'name',
+        'slug',
         'email',
         'password',
         'role_id',
@@ -27,6 +30,13 @@ class User extends Authenticatable
         'phone',
         'avatar'
     ];
+
+    public function getSlugOptions(): SlugOptions
+    {
+        return SlugOptions::create()
+            ->generateSlugsFrom('name')
+            ->saveSlugsTo('slug');
+    }
 
     protected $hidden = [
         'password',

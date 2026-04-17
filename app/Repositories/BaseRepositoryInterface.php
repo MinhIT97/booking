@@ -24,6 +24,11 @@ interface BaseRepositoryInterface
     public function whereHas(string $relation, \Closure $callback = null, string $operator = '>=', int $count = 1): self;
 
     /**
+     * Add a whereDoesntHave clause to the repository query.
+     */
+    public function whereDoesntHave(string $relation, \Closure $callback = null): self;
+
+    /**
      * Add a withCount clause to the repository query.
      */
     public function withCount(array|string $relations): self;

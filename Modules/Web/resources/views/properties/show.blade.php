@@ -20,13 +20,13 @@
                     <span class="underline cursor-pointer hover:text-gray-600 transition-colors">{{ $property->city }}, {{ $property->country }}</span>
                 </div>
                 <div class="flex items-center gap-6">
-                    <button class="flex items-center gap-2 text-sm font-semibold underline hover:bg-gray-50 px-3 py-2 rounded-lg transition-all">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-                        Share
+                    <button id="share-btn" class="flex items-center gap-2 text-sm font-semibold underline hover:bg-gray-50 px-3 py-2 rounded-lg transition-all group">
+                        <svg class="w-4 h-4 group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                        <span id="share-text">Share</span>
                     </button>
-                    <button class="flex items-center gap-2 text-sm font-semibold underline hover:bg-gray-50 px-3 py-2 rounded-lg transition-all">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                        Save
+                    <button id="save-btn" class="flex items-center gap-2 text-sm font-semibold underline hover:bg-gray-50 px-3 py-2 rounded-lg transition-all group">
+                        <svg id="save-icon" class="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                        <span id="save-text">Save</span>
                     </button>
                 </div>
             </div>
@@ -123,21 +123,18 @@
                         </div>
                     </div>
 
-                    <form action="{{ route('bookings.create', $property->id) }}" method="GET" class="space-y-4">
-                        <div class="border border-gray-300 rounded-xl overflow-hidden">
-                            <div class="flex border-b border-gray-300">
-                                <div class="flex-1 p-3 border-r border-gray-300">
-                                    <label class="block text-[10px] font-black uppercase tracking-wider text-gray-900">Check-in</label>
-                                    <input type="text" value="{{ now()->format('m/d/Y') }}" class="w-full text-xs font-medium focus:outline-none bg-transparent" readonly>
-                                </div>
-                                <div class="flex-1 p-3">
-                                    <label class="block text-[10px] font-black uppercase tracking-wider text-gray-900">Checkout</label>
-                                    <input type="text" value="{{ now()->addDays(5)->format('m/d/Y') }}" class="w-full text-xs font-medium focus:outline-none bg-transparent" readonly>
+                    <form action="{{ route('bookings.create', $property->slug) }}" method="GET" class="space-y-4">
+                        <div class="border border-gray-300 rounded-xl overflow-hidden shadow-inner">
+                            <div class="p-3 border-b border-gray-200 bg-gray-50/30">
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">Check-in — Checkout</label>
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-3 h-3 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                    <input type="text" id="booking-dates" name="dates" placeholder="Add dates" class="datepicker-range w-full text-xs font-bold focus:outline-none bg-transparent" readonly>
                                 </div>
                             </div>
                             <div class="p-3">
-                                <label class="block text-[10px] font-black uppercase tracking-wider text-gray-900">Guests</label>
-                                <select name="guests" class="w-full text-xs font-medium focus:outline-none bg-transparent">
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">Guests</label>
+                                <select name="guests" class="w-full text-xs font-bold focus:outline-none bg-transparent">
                                     @for($i = 1; $i <= $property->max_guests; $i++)
                                         <option value="{{ $i }}">{{ $i }} guest{{ $i > 1 ? 's' : '' }}</option>
                                     @endfor
@@ -152,11 +149,11 @@
 
                     <p class="text-center text-gray-500 text-xs mt-4">You won't be charged yet</p>
 
-                    {{-- FEE BREAKDOWN (Fake/Static for now) --}}
-                    <div class="mt-6 space-y-3">
+                    {{-- FEE BREAKDOWN --}}
+                    <div id="price-breakdown" class="mt-6 space-y-3 hidden animate-fadeUp">
                         <div class="flex justify-between text-sm text-gray-600">
-                            <span class="underline">${{ number_format($property->price_per_night, 0) }} x 5 nights</span>
-                            <span>${{ number_format($property->price_per_night * 5, 0) }}</span>
+                            <span class="underline">${{ number_format($property->price_per_night, 0) }} x <span id="night-count">0</span> nights</span>
+                            <span>$<span id="base-price">0</span></span>
                         </div>
                         <div class="flex justify-between text-sm text-gray-600">
                             <span class="underline">Cleaning fee</span>
@@ -168,7 +165,7 @@
                         </div>
                         <div class="pt-4 border-t border-gray-100 flex justify-between font-extrabold text-gray-900">
                             <span>Total</span>
-                            <span>${{ number_format($property->price_per_night * 5 + 125, 0) }}</span>
+                            <span>$<span id="total-price">0</span></span>
                         </div>
                     </div>
                 </div>
@@ -176,4 +173,73 @@
         </div>
     </div>
 </main>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const nightRate = {{ $property->price_per_night }};
+        const cleaningFee = 40;
+        const serviceFee = 85;
+
+        // 1. Date Picker with price calculation and disabled dates
+        const bookedDates = @json($bookedDates);
+
+        flatpickr("#booking-dates", {
+            mode: "range",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "M j, Y",
+            minDate: "today",
+            disable: bookedDates,
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length === 2) {
+                    const diffTime = Math.abs(selectedDates[1] - selectedDates[0]);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays > 0) {
+                        document.getElementById('night-count').textContent = diffDays;
+                        document.getElementById('base-price').textContent = (diffDays * nightRate).toLocaleString();
+                        document.getElementById('total-price').textContent = (diffDays * nightRate + cleaningFee + serviceFee).toLocaleString();
+                        document.getElementById('price-breakdown').classList.remove('hidden');
+                    }
+                } else {
+                    document.getElementById('price-breakdown').classList.add('hidden');
+                }
+            }
+        });
+
+        // 2. Share Button
+        const shareBtn = document.getElementById('share-btn');
+        const shareText = document.getElementById('share-text');
+        shareBtn.addEventListener('click', function() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                const originalText = shareText.textContent;
+                shareText.textContent = "Copied!";
+                shareBtn.classList.add('text-green-600');
+                setTimeout(() => {
+                    shareText.textContent = originalText;
+                    shareBtn.classList.remove('text-green-600');
+                }, 2000);
+            });
+        });
+
+        // 3. Save Button
+        const saveBtn = document.getElementById('save-btn');
+        const saveIcon = document.getElementById('save-icon');
+        const saveText = document.getElementById('save-text');
+        saveBtn.addEventListener('click', function() {
+            const isSaved = saveIcon.getAttribute('fill') === 'currentColor';
+            if (isSaved) {
+                saveIcon.setAttribute('fill', 'none');
+                saveIcon.classList.remove('text-brand');
+                saveText.textContent = "Save";
+            } else {
+                saveIcon.setAttribute('fill', 'currentColor');
+                saveIcon.classList.add('text-brand');
+                saveText.textContent = "Saved";
+            }
+        });
+    });
+</script>
+@endpush
 @endsection

@@ -64,7 +64,12 @@ class BookingService extends BaseService
                 'status' => BookingStatus::Pending->value
             ]);
 
-            return $booking->load(['property', 'user']);
+            $booking->load(['property', 'property.primaryImage', 'user']);
+
+            // 4. Fire event for email confirmation, etc.
+            event(new \Modules\Booking\Events\BookingCreated($booking));
+
+            return $booking;
         });
     }
 

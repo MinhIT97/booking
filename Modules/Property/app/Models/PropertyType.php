@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Spatie\Sluggable\HasSlug;
+use Spatie\Sluggable\SlugOptions;
 
 class PropertyType extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasUuids, SoftDeletes, HasSlug;
 
     protected $fillable = [
         'name',
@@ -22,17 +24,13 @@ class PropertyType extends Model
     ];
 
     /**
-     * Boot the model.
+     * Spatie Sluggable Options
      */
-    protected static function boot()
+    public function getSlugOptions(): SlugOptions
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (!$model->slug) {
-                $model->slug = Str::slug($model->name);
-            }
-        });
+        return SlugOptions::create()
+            ->generateSlugsFrom('name')
+            ->saveSlugsTo('slug');
     }
 
     /**

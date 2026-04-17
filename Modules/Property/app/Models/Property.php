@@ -12,6 +12,9 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\User;
 
+use Spatie\Sluggable\HasSlug;
+use Spatie\Sluggable\SlugOptions;
+
 /**
  * Class Property.
  *
@@ -19,13 +22,14 @@ use App\Models\User;
  */
 class Property extends Model implements Transformable
 {
-    use TransformableTrait, HasUuids, SoftDeletes;
+    use TransformableTrait, HasUuids, SoftDeletes, HasSlug;
 
     protected $fillable = [
         'host_id',
         'user_id',
         'property_type_id',
         'title',
+        'slug',
         'description',
         'price_per_night',
         'max_guests',
@@ -42,6 +46,13 @@ class Property extends Model implements Transformable
         'reviews_count',
         'average_rating'
     ];
+
+    public function getSlugOptions(): SlugOptions
+    {
+        return SlugOptions::create()
+            ->generateSlugsFrom('title')
+            ->saveSlugsTo('slug');
+    }
 
     protected $casts = [
         'status' => PropertyStatus::class,

@@ -46,6 +46,12 @@ abstract class BaseRepository implements BaseRepositoryInterface
         return $this;
     }
 
+    public function whereDoesntHave(string $relation, \Closure $callback = null): self
+    {
+        $this->scopes[] = ['method' => 'whereDoesntHave', 'params' => func_get_args()];
+        return $this;
+    }
+
     public function withCount(array|string $relations): self
     {
         $this->scopes[] = ['method' => 'withCount', 'params' => func_get_args()];

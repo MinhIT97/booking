@@ -12,7 +12,8 @@
         "laravel/tinker": "^3.0",
         "nwidart/laravel-modules": "^13.0",
         "predis/predis": "^3.4",
-        "prettus/l5-repository": "^3.0"
+        "prettus/l5-repository": "^3.0",
+        "spatie/laravel-sluggable": "^3.8"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^4.2",

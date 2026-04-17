@@ -38,6 +38,36 @@ class PropertyService extends BaseService
             });
         }
 
+        if (!empty($filters['location'])) {
+            $location = '%' . $filters['location'] . '%';
+            $query->where(function($q) use ($location) {
+                $q->where('city', 'like', $location)
+                  ->orWhere('state', 'like', $location)
+                  ->orWhere('country', 'like', $location)
+                  ->orWhere('title', 'like', $location)
+                  ->orWhere('address', 'like', $location);
+            });
+        }
+
+        // Availability filter
+        if (!empty($filters['dates']) && str_contains($filters['dates'], ' to ')) {
+            [$startStr, $endStr] = explode(' to ', $filters['dates']);
+            try {
+                $start = \Carbon\Carbon::parse($startStr)->format('Y-m-d');
+                $end = \Carbon\Carbon::parse($endStr)->format('Y-m-d');
+
+                $query->whereDoesntHave('bookings', function($q) use ($start, $end) {
+                    $q->whereIn('status', [1, 2]) // 1: Pending, 2: Confirmed (assumed from BookingStatus)
+                      ->where(function($q) use ($start, $end) {
+                          $q->where('check_in_date', '<', $end)
+                            ->where('check_out_date', '>', $start);
+                      });
+                });
+            } catch (\Exception $e) {
+                // Ignore invalid date formats in search
+            }
+        }
+
         return $query->paginate(15);
     }
 
@@ -49,6 +79,11 @@ class PropertyService extends BaseService
     public function getPropertyById(string $id): ?Model
     {
         return $this->repository->with(['host', 'images', 'primaryImage', 'propertyType'])->find($id);
+    }
+
+    public function getPropertyBySlug(string $slug): ?Model
+    {
+        return $this->repository->with(['host', 'images', 'primaryImage', 'propertyType'])->findBy(['slug' => $slug])->first();
     }
 
     public function createProperty(array $data, ?string $hostId = null): Model

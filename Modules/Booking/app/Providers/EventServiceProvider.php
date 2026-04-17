@@ -11,7 +11,11 @@ class EventServiceProvider extends ServiceProvider
      *
      * @var array<string, array<int, string>>
      */
-    protected $listen = [];
+    protected $listen = [
+        \Modules\Booking\Events\BookingCreated::class => [
+            \Modules\Booking\Listeners\SendBookingConfirmation::class,
+        ],
+    ];
 
     /**
      * Indicates if events should be discovered.
