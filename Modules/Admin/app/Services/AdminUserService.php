@@ -24,9 +24,11 @@ class AdminUserService extends BaseService
      */
     public function getUserList(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
-        return $this->repository
-            ->with('role')
-            ->pushCriteria(new AdminUserFilterCriteria($filters))
+        $query = \App\Models\User::query()
+            ->with('role');
+
+        return (new \Modules\Admin\Filters\User\UserFilterPipeline($filters))
+            ->apply($query)
             ->paginate($perPage);
     }
 

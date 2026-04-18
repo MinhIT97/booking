@@ -16,9 +16,11 @@ class AdminBookingService extends BaseService
 
     public function getBookingList(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
-        return $this->repository
-            ->with(['user', 'property.host'])
-            ->pushCriteria(new AdminBookingFilterCriteria($filters))
+        $query = \Modules\Booking\Models\Booking::query()
+            ->with(['user', 'property.host']);
+
+        return (new \Modules\Booking\Filters\BookingFilterPipeline($filters))
+            ->apply($query)
             ->paginate($perPage);
     }
 

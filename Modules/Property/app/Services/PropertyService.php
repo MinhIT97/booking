@@ -23,9 +23,11 @@ class PropertyService extends BaseService
 
     public function getAllProperties(array $filters = []): LengthAwarePaginator
     {
-        return $this->repository
-            ->with(['user', 'images', 'primaryImage', 'host', 'propertyType'])
-            ->pushCriteria(new PropertySearchCriteria($filters))
+        $query = \Modules\Property\Models\Property::query()
+            ->with(['user', 'images', 'primaryImage', 'host', 'propertyType']);
+
+        return (new PropertyFilterPipeline($filters))
+            ->apply($query)
             ->paginate(15);
     }
 

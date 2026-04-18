@@ -21,9 +21,11 @@ class AdminPropertyService extends BaseService
      */
     public function getPropertyList(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
-        return $this->repository
-            ->with(['host', 'primaryImage'])
-            ->pushCriteria(new AdminPropertyFilterCriteria($filters))
+        $query = \Modules\Property\Models\Property::query()
+            ->with(['host', 'primaryImage']);
+
+        return (new \Modules\Admin\Filters\AdminPropertyFilterPipeline($filters))
+            ->apply($query)
             ->paginate($perPage);
     }
 
