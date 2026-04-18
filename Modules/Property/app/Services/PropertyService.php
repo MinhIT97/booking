@@ -34,6 +34,17 @@ class PropertyService extends BaseService
         return $this->typeRepository->all();
     }
 
+    public function getAvailableLocations(): array
+    {
+        return $this->repository
+            ->findWhere(['status' => 2])
+            ->pluck('city')
+            ->unique()
+            ->filter()
+            ->values()
+            ->toArray();
+    }
+
     public function getPropertyById(string $id): ?Model
     {
         return $this->repository->with(['host', 'images', 'primaryImage', 'propertyType'])->find($id);

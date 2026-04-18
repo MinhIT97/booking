@@ -19,20 +19,24 @@ class PropertySearchCriteria implements CriteriaInterface
             $model = $model->where('property_type_id', $this->filters['property_type_id']);
         }
 
-        if (!empty($this->filters['type_slug'])) {
+        if (!empty($this->filters['type_slug']) && $this->filters['type_slug'] !== 'all') {
             $model = $model->whereHas('propertyType', function($q) {
                 $q->where('slug', $this->filters['type_slug']);
             });
         }
 
         if (!empty($this->filters['location'])) {
-            $location = '%' . $this->filters['location'] . '%';
-            $model = $model->where(function($q) use ($location) {
-                $q->where('city', 'like', $location)
-                  ->orWhere('state', 'like', $location)
-                  ->orWhere('country', 'like', $location)
-                  ->orWhere('title', 'like', $location)
-                  ->orWhere('address', 'like', $location);
+            $locations = (array) $this->filters['location'];
+            $model = $model->where(function($q) use ($locations) {
+                foreach ($locations as $loc) {
+                    if (empty($loc)) continue;
+                    $search = '%' . $loc . '%';
+                    $q->orWhere('city', 'like', $search)
+                      ->orWhere('state', 'like', $search)
+                      ->orWhere('country', 'like', $search)
+                      ->orWhere('title', 'like', $search)
+                      ->orWhere('address', 'like', $search);
+                }
             });
         }
 
@@ -51,6 +55,35 @@ class PropertySearchCriteria implements CriteriaInterface
                       });
                 });
             } catch (\Exception $e) {}
+        }
+
+        // Price filters
+        if (isset($this->filters['min_price']) || isset($this->filters['max_price'])) {
+            $p1 = isset($this->filters['min_price']) ? (int) $this->filters['min_price'] : 0;
+            $p2 = isset($this->filters['max_price']) ? (int) $this->filters['max_price'] : 1000;
+            
+            $minPrice = min($p1, $p2);
+            $maxPrice = max($p1, $p2);
+            
+            $model = $model->where('price_per_night', '>=', $minPrice)
+                           ->where('price_per_night', '<=', $maxPrice);
+        }
+
+        // Rating filter
+        if (isset($this->filters['min_rating'])) {
+            $model = $model->where('average_rating', '>=', (float) $this->filters['min_rating']);
+        }
+
+        // Sorting
+        $sort = $this->filters['sort'] ?? 'recommended';
+        if ($sort === 'price-asc') {
+            $model = $model->orderBy('price_per_night', 'asc');
+        } elseif ($sort === 'price-desc') {
+            $model = $model->orderBy('price_per_night', 'desc');
+        } elseif ($sort === 'rating') {
+            $model = $model->orderBy('average_rating', 'desc');
+        } else {
+            $model = $model->orderBy('created_at', 'desc'); // recommended fallback
         }
 
         return $model;

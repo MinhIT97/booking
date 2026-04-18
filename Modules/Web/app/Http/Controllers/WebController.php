@@ -45,15 +45,24 @@ class WebController extends Controller
     public function search(Request $request)
     {
         $categories = $this->propertyService->getPropertyTypes();
+        $locations = $this->propertyService->getAvailableLocations();
         
-        $properties = $this->propertyService->getAllProperties([
-            'status' => PropertyStatus::Active->value,
-            'location' => $request->query('location'),
-            'type_slug' => $request->query('type'),
-            ...$request->all()
-        ]);
+        $filters = $request->all();
+        $filters['status'] = PropertyStatus::Active->value;
+        
+        // Normalize location for criteria
+        if ($request->has('location')) {
+            $filters['location'] = $request->query('location');
+        }
 
-        return view('web::properties.search', compact('properties', 'categories'));
+        // Map 'type' from request to 'type_slug' for criteria
+        if ($request->filled('type') && $request->query('type') !== 'all') {
+            $filters['type_slug'] = $request->query('type');
+        }
+
+        $properties = $this->propertyService->getAllProperties($filters);
+
+        return view('web::properties.search', compact('properties', 'categories', 'locations'));
     }
 
     /**

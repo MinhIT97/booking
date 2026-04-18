@@ -12,7 +12,7 @@
       </a>
       <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
         <a href="#features" class="nav-link hover:text-brand transition-colors">Features</a>
-        <a href="#properties" class="nav-link hover:text-brand transition-colors">Properties</a>
+        <a href="{{ route('properties.search') }}" class="nav-link hover:text-brand transition-colors">Properties</a>
         <a href="{{ route('host.properties.index') }}" class="nav-link hover:text-brand transition-colors">Become a Host</a>
       </div>
       <div class="flex items-center gap-3">
