@@ -23,11 +23,12 @@ class AvailabilityFilter implements FilterContract
             $end = Carbon::parse($endStr)->format('Y-m-d');
 
             return $query->whereDoesntHave('bookings', function($q) use ($start, $end) {
-                $q->whereIn('status', [1, 2]) // 1: Pending, 2: Confirmed
-                  ->where(function($sub) use ($start, $end) {
-                      $sub->where('check_in_date', '<', $end)
-                          ->where('check_out_date', '>', $start);
-                  });
+                $q->whereIn('status', [
+                    \Modules\Booking\Enums\BookingStatus::Pending->value,
+                    \Modules\Booking\Enums\BookingStatus::Confirmed->value,
+                ])
+                ->where('check_in_date', '<', $end)
+                ->where('check_out_date', '>', $start);
             });
         } catch (Exception) {
             return $query;

@@ -8,8 +8,7 @@ use Modules\Property\Repositories\PropertyTypeRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Property\Criteria\PropertySearchCriteria;
-use Modules\Property\Criteria\HostPropertiesCriteria;
+use Modules\Property\Filters\PropertyFilterPipeline;
 
 class PropertyService extends BaseService
 {
@@ -94,10 +93,15 @@ class PropertyService extends BaseService
      */
     public function getByHost(string $hostId, array $filters = []): LengthAwarePaginator
     {
-        return $this->repository
+        $filters['host_id'] = $hostId;
+
+        $query = \Modules\Property\Models\Property::query()
+            ->where('host_id', $hostId)
             ->with(['images', 'primaryImage', 'propertyType'])
-            ->withCount('bookings')
-            ->pushCriteria(new HostPropertiesCriteria($hostId, $filters))
+            ->withCount('bookings');
+
+        return (new PropertyFilterPipeline($filters))
+            ->apply($query)
             ->paginate(9);
     }
 

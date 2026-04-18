@@ -9,27 +9,21 @@ class LocationSearchFilter implements FilterContract
 {
     public function apply(Builder $query, array $filters): Builder
     {
-        return $query->when(
-            $filters['location'] ?? null,
-            function($q, $locations) {
-                $locations = (array) $locations;
-                $locations = array_filter($locations);
+        $locations = array_filter((array) ($filters['location'] ?? []));
 
-                if (empty($locations)) return $q;
+        if (empty($locations)) {
+            return $query;
+        }
 
-                return $q->where(function($sub) use ($locations) {
-                    foreach ($locations as $loc) {
-                        $search = "%{$loc}%";
-                        $sub->orWhere(function($inner) use ($search) {
-                            $inner->where('city', 'like', $search)
-                                  ->orWhere('state', 'like', $search)
-                                  ->orWhere('country', 'like', $search)
-                                  ->orWhere('title', 'like', $search)
-                                  ->orWhere('address', 'like', $search);
-                        });
-                    }
-                });
+        $columns = ['city', 'state', 'country', 'title', 'address'];
+
+        return $query->where(function ($q) use ($locations, $columns) {
+            foreach ($locations as $loc) {
+                $term = "%{$loc}%";
+                foreach ($columns as $column) {
+                    $q->orWhere($column, 'like', $term);
+                }
             }
-        );
+        });
     }
 }

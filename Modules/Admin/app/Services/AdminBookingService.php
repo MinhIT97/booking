@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Admin\Repositories\AdminBookingRepositoryInterface;
 use Modules\Booking\Enums\BookingStatus;
-use Modules\Admin\Criteria\AdminBookingFilterCriteria;
 
 class AdminBookingService extends BaseService
 {
