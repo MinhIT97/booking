@@ -9,24 +9,25 @@ use Illuminate\Database\Eloquent\Model;
 use Modules\Admin\Repositories\AdminBookingRepositoryInterface;
 use Modules\Booking\Enums\BookingStatus;
 
+use Illuminate\Database\Eloquent\Builder;
+use Modules\Booking\Filters\BookingFilterPipeline;
+
 class AdminBookingService extends BaseService
 {
     public function __construct(protected AdminBookingRepositoryInterface $repository) {}
 
     public function getBookingList(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
-        $query = \Modules\Booking\Models\Booking::query()
-            ->with(['user', 'property.host']);
+        $perPage = $filters['per_page'] ?? $perPage;
 
-        return (new \Modules\Booking\Filters\BookingFilterPipeline($filters))
-            ->apply($query)
+        return $this->buildFilteredQuery($filters)
             ->paginate($perPage);
     }
 
     public function getBooking(string $id): ?Model
     {
-        return $this->repository
-            ->with(['user.role', 'property.host', 'property.primaryImage'])
+        return $this->repository->query()
+            ->with($this->getDetailRelations())
             ->find($id);
     }
 
@@ -56,18 +57,37 @@ class AdminBookingService extends BaseService
 
     public function recent(int $limit = 8): Collection
     {
-        return $this->repository
-            ->with(['user', 'property'])
-            ->scopeQuery(function($q) use ($limit) {
-                return $q->latest()->limit($limit);
-            })
+        return $this->repository->query()
+            ->with($this->getListRelations())
+            ->latest()
+            ->limit($limit)
             ->get();
     }
 
     public function revenueTotal(): float
     {
-        return (float) $this->repository->scopeQuery(function($q) {
-            return $q->whereIn('status', [BookingStatus::Confirmed->value, BookingStatus::Completed->value]);
-        })->sum('total_price');
+        return (float) $this->repository->query()
+            ->whereIn('status', [BookingStatus::Confirmed->value, BookingStatus::Completed->value])
+            ->sum('total_price');
+    }
+
+    /* ── Private Helpers ─────────────────────────────────────── */
+
+    private function buildFilteredQuery(array $filters = []): Builder
+    {
+        $query = $this->repository->query()
+            ->with($this->getListRelations());
+
+        return (new BookingFilterPipeline($filters))->apply($query);
+    }
+
+    private function getListRelations(): array
+    {
+        return ['user', 'property.host'];
+    }
+
+    private function getDetailRelations(): array
+    {
+        return ['user.role', 'property.host', 'property.primaryImage'];
     }
 }

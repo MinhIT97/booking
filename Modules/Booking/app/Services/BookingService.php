@@ -13,6 +13,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Modules\Booking\Models\Booking;
 
+use Illuminate\Database\Eloquent\Builder;
+use Modules\Booking\Filters\BookingFilterPipeline;
+
 class BookingService extends BaseService
 {
     public function __construct(
@@ -21,12 +24,12 @@ class BookingService extends BaseService
     ) {}
 
     /**
-     * Guarantee atomic processing using explicit Overlap and DTO architectures.
+     * Create a new booking with overlap protection.
      */
     public function createBooking(BookingDTO $dto): Booking
     {
         return $this->executeInTransaction(function () use ($dto) {
-            $property = $this->propertyRepository->find($dto->propertyId);
+            $property = $this->propertyRepository->query()->find($dto->propertyId);
             
             if (!$property) {
                 throw new Exception("Property not found.");
@@ -42,7 +45,6 @@ class BookingService extends BaseService
                 $dto->checkOutDate
             );
 
-            // 2. If conflict -> throw exception
             if ($isOverlap) {
                 throw new Exception("Property is not available for requested dates.");
             }
@@ -64,18 +66,21 @@ class BookingService extends BaseService
                 'status' => BookingStatus::Pending->value
             ]);
 
-            $booking->load(['property', 'property.primaryImage', 'user']);
+            $booking->load($this->getDetailRelations());
 
-            // 4. Fire event for email confirmation, etc.
             event(new \Modules\Booking\Events\BookingCreated($booking));
 
             return $booking;
         });
     }
 
-    public function getUserBookings(string $userId)
+    public function getUserBookings(string $userId, array $filters = [])
     {
-        return $this->bookingRepository->with(['property', 'property.primaryImage'])->findWhere(['user_id' => $userId]);
+        $filters['user_id'] = $userId;
+        $perPage = $filters['per_page'] ?? 10;
+
+        return $this->buildFilteredQuery($filters)
+            ->paginate($perPage);
     }
 
     public function bookProperty(array $data, string $userId): Booking
@@ -98,7 +103,7 @@ class BookingService extends BaseService
                 throw new Exception('Invalid booking status.');
             }
 
-            $booking = $this->bookingRepository->with(['property', 'user'])->find($id);
+            $booking = $this->bookingRepository->query()->with($this->getDetailRelations())->find($id);
 
             if (!$booking) {
                 return null;
@@ -106,7 +111,7 @@ class BookingService extends BaseService
 
             $this->bookingRepository->update(['status' => $bookingStatus->value], $id);
 
-            return $booking->refresh()->load(['property', 'user']);
+            return $booking->refresh()->load($this->getDetailRelations());
         });
     }
 
@@ -119,46 +124,40 @@ class BookingService extends BaseService
 
     public function countActiveByHost(string $hostId): int
     {
-        return $this->bookingRepository->scopeQuery(function($q) use ($hostId) {
-            return $q->whereHas('property', function ($query) use ($hostId) {
-                $query->where('host_id', $hostId);
-            })->whereIn('status', [BookingStatus::Confirmed->value, BookingStatus::Completed->value]);
-        })->count();
+        return $this->bookingRepository->query()
+            ->whereHas('property', fn ($q) => $q->where('host_id', $hostId))
+            ->whereIn('status', [BookingStatus::Confirmed->value, BookingStatus::Completed->value])
+            ->count();
     }
 
     public function countPendingByHost(string $hostId): int
     {
-        return $this->bookingRepository->scopeQuery(function($q) use ($hostId) {
-            return $q->whereHas('property', function ($query) use ($hostId) {
-                $query->where('host_id', $hostId);
-            })->where('status', BookingStatus::Pending->value);
-        })->count();
+        return $this->bookingRepository->query()
+            ->whereHas('property', fn ($q) => $q->where('host_id', $hostId))
+            ->where('status', BookingStatus::Pending->value)
+            ->count();
     }
 
     public function revenueThisMonthByHost(string $hostId): float
     {
-        return (float) $this->bookingRepository->scopeQuery(function($q) use ($hostId) {
-            return $q->whereHas('property', function ($query) use ($hostId) {
-                $query->where('host_id', $hostId);
-            })
+        return (float) $this->bookingRepository->query()
+            ->whereHas('property', fn ($q) => $q->where('host_id', $hostId))
             ->whereIn('status', [BookingStatus::Confirmed->value, BookingStatus::Completed->value])
             ->whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year);
-        })->sum('total_price');
+            ->whereYear('created_at', now()->year)
+            ->sum('total_price');
     }
 
     public function revenueGrowthPercentByHost(string $hostId): int
     {
         $thisMonth = $this->revenueThisMonthByHost($hostId);
         
-        $lastMonth = (float) $this->bookingRepository->scopeQuery(function($q) use ($hostId) {
-            return $q->whereHas('property', function ($query) use ($hostId) {
-                $query->where('host_id', $hostId);
-            })
+        $lastMonth = (float) $this->bookingRepository->query()
+            ->whereHas('property', fn ($q) => $q->where('host_id', $hostId))
             ->whereIn('status', [BookingStatus::Confirmed->value, BookingStatus::Completed->value])
             ->whereMonth('created_at', now()->subMonth()->month)
-            ->whereYear('created_at', now()->subMonth()->year);
-        })->sum('total_price');
+            ->whereYear('created_at', now()->subMonth()->year)
+            ->sum('total_price');
 
         if ($lastMonth == 0) {
             return $thisMonth > 0 ? 100 : 0;
@@ -169,15 +168,31 @@ class BookingService extends BaseService
 
     public function recentByHost(string $hostId, int $limit = 8)
     {
-        return $this->bookingRepository
+        return $this->bookingRepository->query()
             ->with(['user', 'property'])
-            ->scopeQuery(function($q) use ($hostId, $limit) {
-                return $q->whereHas('property', function ($query) use ($hostId) {
-                    $query->where('host_id', $hostId);
-                })
-                ->orderByDesc('created_at')
-                ->limit($limit);
-            })
+            ->whereHas('property', fn ($q) => $q->where('host_id', $hostId))
+            ->latest()
+            ->limit($limit)
             ->get();
+    }
+
+    /* ── Private Helpers ─────────────────────────────────────── */
+
+    private function buildFilteredQuery(array $filters = []): Builder
+    {
+        $query = $this->bookingRepository->query()
+            ->with($this->getListRelations());
+
+        return (new BookingFilterPipeline($filters))->apply($query);
+    }
+
+    private function getListRelations(): array
+    {
+        return ['property', 'property.primaryImage'];
+    }
+
+    private function getDetailRelations(): array
+    {
+        return ['property', 'property.primaryImage', 'user'];
     }
 }

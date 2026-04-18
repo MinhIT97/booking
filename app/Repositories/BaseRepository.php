@@ -23,6 +23,11 @@ abstract class BaseRepository extends L5BaseRepository implements BaseRepository
      */
     abstract public function model();
 
+    public function query()
+    {
+        return $this->model->newQuery();
+    }
+
     /**
      * Boot up the repository, pushing criteria or settings.
      */

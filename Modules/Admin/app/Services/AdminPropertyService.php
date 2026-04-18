@@ -9,29 +9,28 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Property\Enums\PropertyStatus;
 
+use Illuminate\Database\Eloquent\Builder;
+use Modules\Admin\Filters\AdminPropertyFilterPipeline;
+
 class AdminPropertyService extends BaseService
 {
-    public function __construct(protected AdminPropertyRepositoryInterface $repository)
-    {
-    }
+    public function __construct(protected AdminPropertyRepositoryInterface $repository) {}
 
     /**
      * Get property list for moderation.
      */
     public function getPropertyList(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
-        $query = \Modules\Property\Models\Property::query()
-            ->with(['host', 'primaryImage']);
+        $perPage = $filters['per_page'] ?? $perPage;
 
-        return (new \Modules\Admin\Filters\AdminPropertyFilterPipeline($filters))
-            ->apply($query)
+        return $this->buildFilteredQuery($filters)
             ->paginate($perPage);
     }
 
     public function getProperty(string $id): ?Model
     {
-        return $this->repository
-            ->with(['host.role', 'images', 'primaryImage', 'bookings.user'])
+        return $this->repository->query()
+            ->with($this->getDetailRelations())
             ->withCount('bookings')
             ->find($id);
     }
@@ -41,8 +40,10 @@ class AdminPropertyService extends BaseService
      */
     public function approveProperty(string $id): bool
     {
-        $this->repository->update(['status' => PropertyStatus::Active->value], $id);
-        return true;
+        return $this->executeInTransaction(function() use ($id) {
+            $this->repository->update(['status' => PropertyStatus::Active->value], $id);
+            return true;
+        });
     }
 
     /**
@@ -50,8 +51,10 @@ class AdminPropertyService extends BaseService
      */
     public function rejectProperty(string $id): bool
     {
-        $this->repository->update(['status' => PropertyStatus::Rejected->value], $id);
-        return true;
+        return $this->executeInTransaction(function() use ($id) {
+            $this->repository->update(['status' => PropertyStatus::Rejected->value], $id);
+            return true;
+        });
     }
 
     /**
@@ -69,11 +72,30 @@ class AdminPropertyService extends BaseService
 
     public function recent(int $limit = 8): Collection
     {
-        return $this->repository
-            ->with(['host', 'primaryImage'])
-            ->scopeQuery(function($q) use ($limit) {
-                return $q->latest()->limit($limit);
-            })
+        return $this->repository->query()
+            ->with($this->getListRelations())
+            ->latest()
+            ->limit($limit)
             ->get();
+    }
+
+    /* ── Private Helpers ─────────────────────────────────────── */
+
+    private function buildFilteredQuery(array $filters = []): Builder
+    {
+        $query = $this->repository->query()
+            ->with($this->getListRelations());
+
+        return (new AdminPropertyFilterPipeline($filters))->apply($query);
+    }
+
+    private function getListRelations(): array
+    {
+        return ['host', 'primaryImage'];
+    }
+
+    private function getDetailRelations(): array
+    {
+        return ['host.role', 'images', 'primaryImage', 'bookings.user'];
     }
 }

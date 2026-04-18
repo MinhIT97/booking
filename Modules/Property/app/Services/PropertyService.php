@@ -8,13 +8,13 @@ use Modules\Property\Repositories\PropertyTypeRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Modules\Property\Filters\PropertyFilterPipeline;
+use Modules\Property\Enums\PropertyStatus;
+use Illuminate\Support\Facades\Cache;
 
 class PropertyService extends BaseService
 {
-    /**
-     * Inject Repository interfaces.
-     */
     public function __construct(
         protected PropertyRepositoryInterface $repository,
         protected PropertyTypeRepositoryInterface $typeRepository
@@ -22,12 +22,15 @@ class PropertyService extends BaseService
 
     public function getAllProperties(array $filters = []): LengthAwarePaginator
     {
-        $query = \Modules\Property\Models\Property::query()
-            ->with(['user', 'images', 'primaryImage', 'host', 'propertyType']);
-
-        return (new PropertyFilterPipeline($filters))
-            ->apply($query)
-            ->paginate(15);
+        $perPage = $filters['per_page'] ?? 15;
+        
+        return Cache::remember(
+            'properties:list:' . md5(json_encode($filters)),
+            600,
+            fn() => $this->buildFilteredQuery($filters)
+                ->select($this->getListColumns())
+                ->paginate($perPage)
+        );
     }
 
     public function getPropertyTypes(): Collection
@@ -37,10 +40,11 @@ class PropertyService extends BaseService
 
     public function getAvailableLocations(): array
     {
-        return $this->repository
-            ->findWhere(['status' => 2])
+        return $this->repository->query()
+            ->where('status', PropertyStatus::Active)
+            ->select('city')
+            ->distinct()
             ->pluck('city')
-            ->unique()
             ->filter()
             ->values()
             ->toArray();
@@ -48,14 +52,17 @@ class PropertyService extends BaseService
 
     public function getPropertyById(string $id): ?Model
     {
-        return $this->repository->with(['host', 'images', 'primaryImage', 'propertyType'])->find($id);
+        return $this->repository->query()
+            ->with($this->getDetailRelations())
+            ->find($id);
     }
 
     public function getPropertyBySlug(string $slug): ?Model
     {
-        return $this->repository->with(['host', 'images', 'primaryImage', 'propertyType'])
-            ->findWhere(['slug' => $slug])
-            ->first();
+        return $this->repository->scopeQuery(fn($q) => $q
+            ->with($this->getDetailRelations())
+            ->where('slug', $slug)
+        )->first();
     }
 
     public function createProperty(array $data, ?string $hostId = null): Model
@@ -82,27 +89,18 @@ class PropertyService extends BaseService
     public function deleteProperty(Model|string $property): bool
     {
         $id = $property instanceof Model ? $property->getKey() : $property;
-
         return $this->repository->delete($id);
     }
 
     /* ── Host-scoped helpers ─────────────────────────────────── */
 
-    /**
-     * Get paginated properties belonging to a specific host, with optional filters.
-     */
     public function getByHost(string $hostId, array $filters = []): LengthAwarePaginator
     {
-        $filters['host_id'] = $hostId;
+        $perPage = $filters['per_page'] ?? 9;
 
-        $query = \Modules\Property\Models\Property::query()
-            ->where('host_id', $hostId)
-            ->with(['images', 'primaryImage', 'propertyType'])
-            ->withCount('bookings');
-
-        return (new PropertyFilterPipeline($filters))
-            ->apply($query)
-            ->paginate(9);
+        return $this->buildFilteredQuery($filters, $hostId)
+            ->withCount('bookings')
+            ->paginate($perPage);
     }
 
     public function countByHost(string $hostId): int
@@ -112,23 +110,21 @@ class PropertyService extends BaseService
 
     public function countByHostThisMonth(string $hostId): int
     {
-        return $this->repository->scopeQuery(function($q) use ($hostId) {
-            return $q->where('host_id', $hostId)
-                ->whereMonth('created_at', now()->month)
-                ->whereYear('created_at', now()->year);
-        })->count();
+        return $this->repository->scopeQuery(fn($q) => $q
+            ->where('host_id', $hostId)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+        )->count();
     }
 
     public function topByHost(string $hostId, int $limit = 5): Collection
     {
-        return $this->repository
+        return $this->repository->query()
+            ->where('host_id', $hostId)
             ->with(['primaryImage'])
             ->withCount('bookings')
-            ->scopeQuery(function($q) use ($hostId, $limit) {
-                return $q->where('host_id', $hostId)
-                    ->orderByDesc('bookings_count')
-                    ->limit($limit);
-            })
+            ->orderByDesc('bookings_count')
+            ->limit($limit)
             ->get();
     }
 
@@ -140,5 +136,38 @@ class PropertyService extends BaseService
     public function totalReviewsByHost(string $hostId): int
     {
         return (int) $this->repository->findWhere(['host_id' => $hostId])->sum('reviews_count');
+    }
+
+    /* ── Private Helpers ─────────────────────────────────────── */
+
+    private function buildFilteredQuery(array $filters = [], ?string $hostId = null): Builder
+    {
+        $query = $this->repository->query()
+            ->with($this->getListRelations());
+
+        if ($hostId) {
+            $query->where('host_id', $hostId);
+        }
+
+        return (new PropertyFilterPipeline($filters))->apply($query);
+    }
+
+    private function getListRelations(): array
+    {
+        return ['primaryImage', 'propertyType', 'host'];
+    }
+
+    private function getDetailRelations(): array
+    {
+        return ['primaryImage', 'propertyType', 'host', 'images', 'user'];
+    }
+
+    private function getListColumns(): array
+    {
+        return [
+            'id', 'host_id', 'property_type_id', 'title', 'slug', 
+            'price_per_night', 'max_guests', 'bedrooms', 'bathrooms', 
+            'city', 'average_rating', 'status', 'created_at'
+        ];
     }
 }

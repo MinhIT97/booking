@@ -12,5 +12,8 @@ use Prettus\Repository\Contracts\RepositoryInterface;
  */
 interface BaseRepositoryInterface extends RepositoryInterface
 {
-    // Add any global project-specific repository method signatures here!
+    /**
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function query();
 }

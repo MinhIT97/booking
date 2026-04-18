@@ -12,29 +12,28 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
+use Illuminate\Database\Eloquent\Builder;
+use Modules\Admin\Filters\User\UserFilterPipeline;
+
 class AdminUserService extends BaseService
 {
-    public function __construct(protected AdminUserRepositoryInterface $repository)
-    {
-    }
+    public function __construct(protected AdminUserRepositoryInterface $repository) {}
 
     /**
      * Get paginated user list for admin.
      */
     public function getUserList(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
-        $query = \App\Models\User::query()
-            ->with('role');
+        $perPage = $filters['per_page'] ?? $perPage;
 
-        return (new \Modules\Admin\Filters\User\UserFilterPipeline($filters))
-            ->apply($query)
+        return $this->buildFilteredQuery($filters)
             ->paginate($perPage);
     }
 
     public function getUser(string $userId): ?Model
     {
-        return $this->repository
-            ->with(['role', 'properties.primaryImage', 'bookings.property'])
+        return $this->repository->query()
+            ->with($this->getDetailRelations())
             ->find($userId);
     }
 
@@ -78,17 +77,19 @@ class AdminUserService extends BaseService
      */
     public function toggleUserStatus(string $userId): bool
     {
-        $user = $this->repository->find($userId);
-        if (!$user) {
-            return false;
-        }
+        return $this->executeInTransaction(function() use ($userId) {
+            $user = $this->repository->find($userId);
+            if (!$user) {
+                return false;
+            }
 
-        $newStatus = $user->status === UserStatus::Active
-            ? UserStatus::Inactive
-            : UserStatus::Active;
+            $newStatus = $user->status === UserStatus::Active
+                ? UserStatus::Inactive
+                : UserStatus::Active;
 
-        $this->repository->update(['status' => $newStatus->value], $userId);
-        return true;
+            $this->repository->update(['status' => $newStatus->value], $userId);
+            return true;
+        });
     }
 
     /**
@@ -96,8 +97,10 @@ class AdminUserService extends BaseService
      */
     public function approveUser(string $userId): bool
     {
-        $this->repository->update(['status' => UserStatus::Active->value], $userId);
-        return true;
+        return $this->executeInTransaction(function() use ($userId) {
+            $this->repository->update(['status' => UserStatus::Active->value], $userId);
+            return true;
+        });
     }
 
     /**
@@ -105,8 +108,10 @@ class AdminUserService extends BaseService
      */
     public function blockUser(string $userId): bool
     {
-        $this->repository->update(['status' => UserStatus::Blocked->value], $userId);
-        return true;
+        return $this->executeInTransaction(function() use ($userId) {
+            $this->repository->update(['status' => UserStatus::Blocked->value], $userId);
+            return true;
+        });
     }
 
     public function deleteUser(string $userId, ?string $currentUserId = null): bool
@@ -125,18 +130,37 @@ class AdminUserService extends BaseService
 
     public function countByRole(string $role): int
     {
-        return $this->repository->scopeQuery(function($q) use ($role) {
-            return $q->whereHas('role', fn ($query) => $query->where('name', $role));
-        })->count();
+        return $this->repository->query()
+            ->whereHas('role', fn ($query) => $query->where('name', $role))
+            ->count();
     }
 
     public function recent(int $limit = 8): Collection
     {
-        return $this->repository
-            ->with('role')
-            ->scopeQuery(function($q) use ($limit) {
-                return $q->latest()->limit($limit);
-            })
+        return $this->repository->query()
+            ->with($this->getListRelations())
+            ->latest()
+            ->limit($limit)
             ->get();
+    }
+
+    /* ── Private Helpers ─────────────────────────────────────── */
+
+    private function buildFilteredQuery(array $filters = []): Builder
+    {
+        $query = $this->repository->query()
+            ->with($this->getListRelations());
+
+        return (new UserFilterPipeline($filters))->apply($query);
+    }
+
+    private function getListRelations(): array
+    {
+        return ['role'];
+    }
+
+    private function getDetailRelations(): array
+    {
+        return ['role', 'properties.primaryImage', 'bookings.property'];
     }
 }
