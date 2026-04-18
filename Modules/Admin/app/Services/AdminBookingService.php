@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Admin\Repositories\AdminBookingRepositoryInterface;
 use Modules\Booking\Enums\BookingStatus;
+use Modules\Admin\Criteria\AdminBookingFilterCriteria;
 
 class AdminBookingService extends BaseService
 {
@@ -17,28 +18,7 @@ class AdminBookingService extends BaseService
     {
         return $this->repository
             ->with(['user', 'property.host'])
-            ->scopeQuery(function($query) use ($filters) {
-                if (!empty($filters['status'])) {
-                    $status = BookingStatus::fromInput($filters['status']);
-                    if ($status) {
-                        $query->where('status', $status->value);
-                    }
-                }
-
-                if (!empty($filters['search'])) {
-                    $search = $filters['search'];
-                    $query->where(function ($q) use ($search) {
-                        $q->whereHas('user', fn ($user) => $user
-                            ->where('name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%"))
-                            ->orWhereHas('property', fn ($property) => $property
-                                ->where('title', 'like', "%{$search}%")
-                                ->orWhere('city', 'like', "%{$search}%"));
-                    });
-                }
-
-                return $query->latest();
-            })
+            ->pushCriteria(new AdminBookingFilterCriteria($filters))
             ->paginate($perPage);
     }
 

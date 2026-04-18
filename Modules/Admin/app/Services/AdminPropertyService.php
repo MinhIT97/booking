@@ -8,6 +8,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Property\Enums\PropertyStatus;
+use Modules\Admin\Criteria\AdminPropertyFilterCriteria;
 
 class AdminPropertyService extends BaseService
 {
@@ -22,27 +23,7 @@ class AdminPropertyService extends BaseService
     {
         return $this->repository
             ->with(['host', 'primaryImage'])
-            ->scopeQuery(function($query) use ($filters) {
-                if (!empty($filters['status'])) {
-                    $status = PropertyStatus::fromInput($filters['status']);
-                    if ($status) {
-                        $query->where('status', $status->value);
-                    }
-                }
-
-                if (!empty($filters['search'])) {
-                    $search = $filters['search'];
-                    $query->where(function ($q) use ($search) {
-                        $q->where('title', 'like', "%{$search}%")
-                          ->orWhere('city', 'like', "%{$search}%")
-                          ->orWhereHas('host', function($h) use ($search) {
-                              $h->where('name', 'like', "%{$search}%");
-                          });
-                    });
-                }
-
-                return $query->latest();
-            })
+            ->pushCriteria(new AdminPropertyFilterCriteria($filters))
             ->paginate($perPage);
     }
 

@@ -8,7 +8,8 @@ use Modules\Property\Repositories\PropertyTypeRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Property\Enums\PropertyStatus;
+use Modules\Property\Criteria\PropertySearchCriteria;
+use Modules\Property\Criteria\HostPropertiesCriteria;
 
 class PropertyService extends BaseService
 {
@@ -24,51 +25,7 @@ class PropertyService extends BaseService
     {
         return $this->repository
             ->with(['user', 'images', 'primaryImage', 'host', 'propertyType'])
-            ->scopeQuery(function($query) use ($filters) {
-                if (!empty($filters['status'])) {
-                    $query->where('status', $filters['status']);
-                }
-
-                if (!empty($filters['property_type_id'])) {
-                    $query->where('property_type_id', $filters['property_type_id']);
-                }
-
-                if (!empty($filters['type_slug'])) {
-                    $query->whereHas('propertyType', function($q) use ($filters) {
-                        $q->where('slug', $filters['type_slug']);
-                    });
-                }
-
-                if (!empty($filters['location'])) {
-                    $location = '%' . $filters['location'] . '%';
-                    $query->where(function($q) use ($location) {
-                        $q->where('city', 'like', $location)
-                          ->orWhere('state', 'like', $location)
-                          ->orWhere('country', 'like', $location)
-                          ->orWhere('title', 'like', $location)
-                          ->orWhere('address', 'like', $location);
-                    });
-                }
-
-                // Availability filter
-                if (!empty($filters['dates']) && str_contains($filters['dates'], ' to ')) {
-                    [$startStr, $endStr] = explode(' to ', $filters['dates']);
-                    try {
-                        $start = \Carbon\Carbon::parse($startStr)->format('Y-m-d');
-                        $end = \Carbon\Carbon::parse($endStr)->format('Y-m-d');
-
-                        $query->whereDoesntHave('bookings', function($q) use ($start, $end) {
-                            $q->whereIn('status', [1, 2]) // 1: Pending, 2: Confirmed
-                              ->where(function($q) use ($start, $end) {
-                                  $q->where('check_in_date', '<', $end)
-                                    ->where('check_out_date', '>', $start);
-                              });
-                        });
-                    } catch (\Exception $e) {}
-                }
-
-                return $query;
-            })
+            ->pushCriteria(new PropertySearchCriteria($filters))
             ->paginate(15);
     }
 
@@ -127,27 +84,7 @@ class PropertyService extends BaseService
         return $this->repository
             ->with(['images', 'primaryImage', 'propertyType'])
             ->withCount('bookings')
-            ->scopeQuery(function($query) use ($hostId, $filters) {
-                $query->where('host_id', $hostId);
-
-                if (!empty($filters['q'])) {
-                    $q = '%' . $filters['q'] . '%';
-                    $query->where(fn($b) => $b->where('title', 'like', $q)->orWhere('city', 'like', $q));
-                }
-
-                if (!empty($filters['property_type_id'])) {
-                    $query->where('property_type_id', $filters['property_type_id']);
-                }
-
-                if (!empty($filters['status'])) {
-                    $status = PropertyStatus::fromInput($filters['status']);
-                    if ($status) {
-                        $query->where('status', $status->value);
-                    }
-                }
-
-                return $query->orderByDesc('created_at');
-            })
+            ->pushCriteria(new HostPropertiesCriteria($hostId, $filters))
             ->paginate(9);
     }
 
@@ -187,5 +124,4 @@ class PropertyService extends BaseService
     {
         return (int) $this->repository->findWhere(['host_id' => $hostId])->sum('reviews_count');
     }
-}
 }

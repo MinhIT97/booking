@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Modules\Admin\Criteria\AdminUserFilterCriteria;
 
 class AdminUserService extends BaseService
 {
@@ -25,30 +26,7 @@ class AdminUserService extends BaseService
     {
         return $this->repository
             ->with('role')
-            ->scopeQuery(function($query) use ($filters) {
-                if (!empty($filters['role'])) {
-                    $query->whereHas('role', function($q) use ($filters) {
-                        $q->where('name', $filters['role']);
-                    });
-                }
-
-                if (!empty($filters['status'])) {
-                    $status = UserStatus::fromInput($filters['status']);
-                    if ($status) {
-                        $query->where('status', $status->value);
-                    }
-                }
-
-                if (!empty($filters['search'])) {
-                    $search = $filters['search'];
-                    $query->where(function($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%")
-                          ->orWhere('email', 'like', "%{$search}%");
-                    });
-                }
-
-                return $query->latest();
-            })
+            ->pushCriteria(new AdminUserFilterCriteria($filters))
             ->paginate($perPage);
     }
 
